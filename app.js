@@ -1,4 +1,4 @@
-/* app.js - Receive Copy System (with corrected toggle behavior) */
+/* app.js - Receive Copy System (Modern UI) */
 
 // DOM Elements
 const receiveForm = document.getElementById("receiveForm");
@@ -10,20 +10,30 @@ const exportJsonBtn = document.getElementById("exportJson");
 const printBtn = document.getElementById("printBtn");
 const clearAllBtn = document.getElementById("clearAll");
 const notification = document.getElementById("notification");
-
 const importBtn = document.getElementById("importJsonFileBtn");
 const importFile = document.getElementById("importJsonFile");
+const searchInput = document.getElementById("searchInput");
+const createFirstReceive = document.getElementById("createFirstReceive");
 
-const mainContent = document.getElementById("mainContent");
-const toggleBar = document.getElementById("toggleBar");
-const formSection = document.getElementById("formSection");
+// Modal Elements
+const createReceiveBtn = document.getElementById("createReceiveBtn");
+const receiveModal = document.getElementById("receiveModal");
+const closeModal = document.getElementById("closeModal");
+const cancelBtn = document.getElementById("cancelBtn");
+
+// Stats Elements
+const totalReceives = document.getElementById("totalReceives");
+const pendingReceives = document.getElementById("pendingReceives");
+const successReceives = document.getElementById("successReceives");
 
 // State
-let receives = []; // will be loaded from receives.json on startup
+let receives = [];
+let filteredReceives = [];
 
 // Helpers
 function showNotification(message, type = "info") {
-  notification.textContent = message;
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  notification.innerHTML = `${icon} ${message}`;
   notification.className = `notification ${type}`;
   notification.classList.add("show");
   setTimeout(() => notification.classList.remove("show"), 3000);
@@ -49,9 +59,31 @@ function saveToLocalStorage() {
   localStorage.setItem("receives", JSON.stringify(receives));
 }
 
+function updateStats() {
+  totalReceives.textContent = receives.length;
+  pendingReceives.textContent = receives.filter(r => r.action === "pending").length;
+  successReceives.textContent = receives.filter(r => r.action === "success").length;
+}
+
+// Search Functionality
+function filterReceives(searchTerm) {
+  if (!searchTerm) {
+    filteredReceives = [...receives];
+  } else {
+    filteredReceives = receives.filter(receive =>
+      receive.slNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receive.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receive.action.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+  renderTable();
+}
+
 // Render
 function renderTable() {
-  if (receives.length === 0) {
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  
+  if (dataToRender.length === 0) {
     emptyState.style.display = "block";
     receiveTable.style.display = "none";
     tableBody.innerHTML = "";
@@ -61,11 +93,11 @@ function renderTable() {
   emptyState.style.display = "none";
   receiveTable.style.display = "table";
 
-  tableBody.innerHTML = receives
+  tableBody.innerHTML = dataToRender
     .map(
       (receive) => `
       <tr>
-        <td>${receive.slNo}</td>
+        <td><strong>${receive.slNo}</strong></td>
         <td>${formatDate(receive.date)}</td>
         <td>${receive.subject}</td>
         <td><span class="status-${receive.action}">${receive.action.charAt(0).toUpperCase() + receive.action.slice(1)}</span></td>
@@ -75,29 +107,43 @@ function renderTable() {
     .join("");
 }
 
-// Load receives.json (must be served via HTTP server)
+// Load receives.json
 async function loadReceivesFromJSON() {
   try {
     const response = await fetch("receives.json");
-    if (!response.ok) throw new Error("receives.json not found (check server / path)");
+    if (!response.ok) throw new Error("receives.json not found");
     const data = await response.json();
     if (!Array.isArray(data)) throw new Error("Invalid JSON format: expected array");
-    // ensure each item has an id
     receives = data.map(item => ({ id: item.id || generateId(), ...item }));
-    saveToLocalStorage(); // optional: cache into localStorage
+    saveToLocalStorage();
+    updateStats();
     renderTable();
     console.info("receives.json loaded");
   } catch (err) {
     console.error("Error loading receives.json:", err);
-    showNotification("Failed to load receives.json (see console)", "error");
-    // fallback: try loading from localStorage (if exists)
+    showNotification("Failed to load receives.json", "error");
     const fromLS = JSON.parse(localStorage.getItem("receives") || "null");
     if (Array.isArray(fromLS) && fromLS.length) {
       receives = fromLS;
+      updateStats();
       renderTable();
       showNotification("Loaded data from localStorage", "info");
     }
   }
+}
+
+// Modal Functions
+function openModal() {
+  receiveModal.style.display = "block";
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("slNo").focus();
+  document.body.style.overflow = "hidden";
+}
+
+function closeModalFunc() {
+  receiveModal.style.display = "none";
+  receiveForm.reset();
+  document.body.style.overflow = "auto";
 }
 
 // Add new receive
@@ -117,10 +163,10 @@ function addReceive(event) {
   const newReceive = { id: generateId(), slNo, date, subject, action };
   receives.push(newReceive);
   saveToLocalStorage();
+  updateStats();
   renderTable();
 
-  receiveForm.reset();
-  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  closeModalFunc();
   showNotification("Receive added successfully!", "success");
 }
 
@@ -243,7 +289,6 @@ function printReceives() {
   setTimeout(() => {
     printWindow.focus();
     printWindow.print();
-    // printWindow.close();
   }, 250);
 
   showNotification("Print dialog opened!", "info");
@@ -257,12 +302,14 @@ function clearAllData() {
   }
   if (!confirm("Are you sure you want to delete all receive data? This action cannot be undone.")) return;
   receives = [];
+  filteredReceives = [];
   saveToLocalStorage();
+  updateStats();
   renderTable();
   showNotification("All data cleared!", "info");
 }
 
-// Import JSON File (via file picker)
+// Import JSON File
 importBtn.addEventListener("click", () => importFile.click());
 
 importFile.addEventListener("change", () => {
@@ -275,6 +322,7 @@ importFile.addEventListener("change", () => {
       if (!Array.isArray(data)) throw new Error("JSON must be an array");
       receives = data.map(item => ({ id: item.id || generateId(), ...item }));
       saveToLocalStorage();
+      updateStats();
       renderTable();
       showNotification("Imported JSON successfully!", "success");
     } catch (err) {
@@ -285,34 +333,35 @@ importFile.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
-// Toggle form collapse/open
-function setCollapsedState(collapsed) {
-  if (collapsed) {
-    mainContent.classList.add("collapsed");
-    toggleBar.setAttribute("aria-expanded", "false");
-    formSection.setAttribute("aria-hidden", "true");
-    toggleBar.textContent = '›'; // arrow pointing right means "open"
-  } else {
-    mainContent.classList.remove("collapsed");
-    toggleBar.setAttribute("aria-expanded", "true");
-    formSection.setAttribute("aria-hidden", "false");
-    toggleBar.textContent = '‹'; // arrow pointing left means "close"
-  }
-}
+// Event listeners for modal
+createReceiveBtn.addEventListener("click", openModal);
+createFirstReceive.addEventListener("click", openModal);
+closeModal.addEventListener("click", closeModalFunc);
+cancelBtn.addEventListener("click", closeModalFunc);
 
-let collapsed = false;
-toggleBar.addEventListener("click", () => {
-  collapsed = !collapsed;
-  setCollapsedState(collapsed);
-  if (collapsed) {
-    document.getElementById("tableSection").focus?.();
-  } else {
-    document.getElementById("slNo").focus();
+// Close modal when clicking outside
+window.addEventListener("click", (event) => {
+  if (event.target === receiveModal) {
+    closeModalFunc();
   }
 });
 
-// Event listeners
+// Close modal with Escape key
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && receiveModal.style.display === "block") {
+    closeModalFunc();
+  }
+});
+
+// Search functionality
+searchInput.addEventListener("input", (e) => {
+  filterReceives(e.target.value);
+});
+
+// Form submission
 receiveForm.addEventListener("submit", addReceive);
+
+// Export/Import event listeners
 exportCsvBtn.addEventListener("click", exportToCSV);
 exportJsonBtn.addEventListener("click", exportToJSON);
 printBtn.addEventListener("click", printReceives);
@@ -321,5 +370,4 @@ clearAllBtn.addEventListener("click", clearAllData);
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
   loadReceivesFromJSON();
-  document.getElementById("date").value = new Date().toISOString().split("T")[0];
 });
