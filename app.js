@@ -1,4 +1,4 @@
-/* app.js - Receive Copy System (Modern UI) */
+/* app.js - Receive Copy System (Modern UI with Pagination) */
 
 // DOM Elements
 const receiveForm = document.getElementById("receiveForm");
@@ -15,6 +15,16 @@ const importFile = document.getElementById("importJsonFile");
 const searchInput = document.getElementById("searchInput");
 const createFirstReceive = document.getElementById("createFirstReceive");
 
+// Pagination Elements
+const paginationContainer = document.getElementById("paginationContainer");
+const paginationInfo = document.getElementById("paginationInfo");
+const firstPageBtn = document.getElementById("firstPage");
+const prevPageBtn = document.getElementById("prevPage");
+const nextPageBtn = document.getElementById("nextPage");
+const lastPageBtn = document.getElementById("lastPage");
+const pageNumbers = document.getElementById("pageNumbers");
+const recordsPerPageSelect = document.getElementById("recordsPerPage");
+
 // Modal Elements
 const createReceiveBtn = document.getElementById("createReceiveBtn");
 const receiveModal = document.getElementById("receiveModal");
@@ -29,6 +39,9 @@ const successReceives = document.getElementById("successReceives");
 // State
 let receives = [];
 let filteredReceives = [];
+let currentPage = 1;
+let recordsPerPage = 20;
+let totalPages = 1;
 
 // Helpers
 function showNotification(message, type = "info") {
@@ -76,16 +89,138 @@ function filterReceives(searchTerm) {
       receive.action.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
+  currentPage = 1; // Reset to first page when searching
   renderTable();
+  updatePagination();
+}
+
+// Pagination Functions
+function getCurrentPageData() {
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  
+  if (recordsPerPage === 0) {
+    return dataToRender; // Show all records
+  }
+  
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  return dataToRender.slice(startIndex, endIndex);
+}
+
+function updatePagination() {
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  const totalRecords = dataToRender.length;
+  
+  if (recordsPerPage === 0) {
+    totalPages = 1;
+  } else {
+    totalPages = Math.ceil(totalRecords / recordsPerPage);
+  }
+  
+  // Show/hide pagination
+  if (totalRecords > (recordsPerPage === 0 ? 0 : recordsPerPage)) {
+    paginationContainer.classList.add('show');
+  } else {
+    paginationContainer.classList.remove('show');
+  }
+  
+  // Update pagination info
+  if (recordsPerPage === 0) {
+    paginationInfo.textContent = `Showing all ${totalRecords} records`;
+  } else {
+    const startRecord = ((currentPage - 1) * recordsPerPage) + 1;
+    const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
+    paginationInfo.textContent = `Showing ${startRecord}-${endRecord} of ${totalRecords} records`;
+  }
+  
+  // Update button states
+  firstPageBtn.disabled = currentPage === 1;
+  prevPageBtn.disabled = currentPage === 1;
+  nextPageBtn.disabled = currentPage === totalPages;
+  lastPageBtn.disabled = currentPage === totalPages;
+  
+  // Generate page numbers
+  generatePageNumbers();
+}
+
+function generatePageNumbers() {
+  pageNumbers.innerHTML = '';
+  
+  if (totalPages <= 1) return;
+  
+  const maxVisiblePages = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  
+  // Adjust if we're at the end
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+  
+  // First page and ellipsis
+  if (startPage > 1) {
+    const firstPageBtn = createPageNumber(1);
+    pageNumbers.appendChild(firstPageBtn);
+    
+    if (startPage > 2) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'page-number ellipsis';
+      ellipsis.textContent = '...';
+      pageNumbers.appendChild(ellipsis);
+    }
+  }
+  
+  // Page numbers
+  for (let i = startPage; i <= endPage; i++) {
+    const pageBtn = createPageNumber(i);
+    if (i === currentPage) {
+      pageBtn.classList.add('active');
+    }
+    pageNumbers.appendChild(pageBtn);
+  }
+  
+  // Last page and ellipsis
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'page-number ellipsis';
+      ellipsis.textContent = '...';
+      pageNumbers.appendChild(ellipsis);
+    }
+    
+    const lastPageBtn = createPageNumber(totalPages);
+    pageNumbers.appendChild(lastPageBtn);
+  }
+}
+
+function createPageNumber(page) {
+  const pageBtn = document.createElement('button');
+  pageBtn.className = 'page-number';
+  pageBtn.textContent = page;
+  pageBtn.addEventListener('click', () => goToPage(page));
+  return pageBtn;
+}
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages) return;
+  
+  currentPage = page;
+  renderTable();
+  updatePagination();
+  
+  // Scroll to top of table
+  tableBody.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Render
 function renderTable() {
+  const currentPageData = getCurrentPageData();
   const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
   
   if (dataToRender.length === 0) {
     emptyState.style.display = "block";
     receiveTable.style.display = "none";
+    paginationContainer.classList.remove('show');
     tableBody.innerHTML = "";
     return;
   }
@@ -93,9 +228,9 @@ function renderTable() {
   emptyState.style.display = "none";
   receiveTable.style.display = "table";
 
-  tableBody.innerHTML = dataToRender
+  tableBody.innerHTML = currentPageData
     .map(
-      (receive) => `
+      (receive, index) => `
       <tr>
         <td><strong>${receive.slNo}</strong></td>
         <td>${formatDate(receive.date)}</td>
@@ -118,6 +253,7 @@ async function loadReceivesFromJSON() {
     saveToLocalStorage();
     updateStats();
     renderTable();
+    updatePagination();
     console.info("receives.json loaded");
   } catch (err) {
     console.error("Error loading receives.json:", err);
@@ -127,6 +263,7 @@ async function loadReceivesFromJSON() {
       receives = fromLS;
       updateStats();
       renderTable();
+      updatePagination();
       showNotification("Loaded data from localStorage", "info");
     }
   }
@@ -164,7 +301,18 @@ function addReceive(event) {
   receives.push(newReceive);
   saveToLocalStorage();
   updateStats();
+  
+  // Go to last page if new record doesn't fit on current page
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  if (recordsPerPage > 0) {
+    const newTotalPages = Math.ceil(dataToRender.length / recordsPerPage);
+    if (currentPage !== newTotalPages) {
+      currentPage = newTotalPages;
+    }
+  }
+  
   renderTable();
+  updatePagination();
 
   closeModalFunc();
   showNotification("Receive added successfully!", "success");
@@ -303,9 +451,11 @@ function clearAllData() {
   if (!confirm("Are you sure you want to delete all receive data? This action cannot be undone.")) return;
   receives = [];
   filteredReceives = [];
+  currentPage = 1;
   saveToLocalStorage();
   updateStats();
   renderTable();
+  updatePagination();
   showNotification("All data cleared!", "info");
 }
 
@@ -324,6 +474,7 @@ importFile.addEventListener("change", () => {
       saveToLocalStorage();
       updateStats();
       renderTable();
+      updatePagination();
       showNotification("Imported JSON successfully!", "success");
     } catch (err) {
       console.error(err);
@@ -356,6 +507,20 @@ document.addEventListener("keydown", (event) => {
 // Search functionality
 searchInput.addEventListener("input", (e) => {
   filterReceives(e.target.value);
+});
+
+// Pagination event listeners
+firstPageBtn.addEventListener("click", () => goToPage(1));
+prevPageBtn.addEventListener("click", () => goToPage(currentPage - 1));
+nextPageBtn.addEventListener("click", () => goToPage(currentPage + 1));
+lastPageBtn.addEventListener("click", () => goToPage(totalPages));
+
+// Records per page change
+recordsPerPageSelect.addEventListener("change", (e) => {
+  recordsPerPage = parseInt(e.target.value);
+  currentPage = 1; // Reset to first page when changing records per page
+  renderTable();
+  updatePagination();
 });
 
 // Form submission

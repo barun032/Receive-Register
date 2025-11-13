@@ -121,6 +121,67 @@
               </button>
             </div>
           </div>
+          <!-- Add this after the table-container div, before the empty-state div closes -->
+<div class="table-container">
+  <table id="receiveTable">
+    <thead>
+      <tr>
+        <th>SL No</th>
+        <th>Date</th>
+        <th>Subject</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-container" id="paginationContainer">
+    <div class="pagination-controls">
+      <div class="pagination-info">
+        <span id="paginationInfo">Showing 0-0 of 0 records</span>
+      </div>
+      
+      <div class="pagination-buttons">
+        <button id="firstPage" class="pagination-btn" disabled>
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button id="prevPage" class="pagination-btn" disabled>
+          <i class="fas fa-angle-left"></i>
+        </button>
+        
+        <div class="page-numbers" id="pageNumbers">
+          <!-- Page numbers will be generated here -->
+        </div>
+        
+        <button id="nextPage" class="pagination-btn" disabled>
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button id="lastPage" class="pagination-btn" disabled>
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+
+      <div class="records-per-page">
+        <label for="recordsPerPage">
+          <i class="fas fa-list-ol"></i>
+          Show:
+        </label>
+        <select id="recordsPerPage">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="0">All</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state">
+    <!-- ... existing empty state content ... -->
+  </div>
+</div>
         </div>
       </main>
 
