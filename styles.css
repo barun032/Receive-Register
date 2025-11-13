@@ -1,0 +1,68 @@
+/* base */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #f5f7fa; color: #333; line-height: 1.6; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+
+/* header */
+header { text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg,#4f6df5,#3a56d8); color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+h1 { font-size: 2.5rem; margin-bottom: 10px; }
+.subtitle { font-size: 1.1rem; opacity: 0.9; }
+
+/* layout */
+.main-content { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+@media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+
+.form-section{
+    height: fit-content;
+}
+
+/* cards */
+.form-section, .table-section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.section-title { font-size: 1.5rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #4f6df5; color: #3a56d8; }
+
+.form-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+
+input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; transition: border 0.3s; }
+input:focus, select:focus { outline: none; border-color: #4f6df5; box-shadow: 0 0 0 2px rgba(79,109,245,0.2); }
+
+.btn { display: inline-block; background: #4f6df5; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s; text-align: center; }
+.btn:hover { background: #3a56d8; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.btn-block { display: block; width: 100%; }
+
+.btn-success { background: #28a745; }
+.btn-success:hover { background: #218838; }
+.btn-danger { background: #dc3545; }
+.btn-danger:hover { background: #c82333; }
+.btn-warning { background: #ffc107; color: #212529; }
+.btn-warning:hover { background: #e0a800; }
+
+/* table */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+th { background-color: #f8f9fa; font-weight: 600; color: #3a56d8; }
+tr:hover { background-color: #f8f9fa; }
+
+.status-pending { background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+.status-success { background-color: #d4edda; color: #155724; padding: 5px 10px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+
+/* empty state */
+.empty-state { text-align: center; padding: 40px 20px; color: #6c757d; }
+.empty-state p { margin-bottom: 15px; }
+
+/* export */
+.export-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+.export-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* footer */
+footer { text-align: center; margin-top: 40px; padding: 20px; color: #6c757d; font-size: 0.9rem; }
+
+/* notification */
+.notification {
+  position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 6px; color: white; font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); transform: translateX(150%); transition: transform 0.3s ease; z-index: 1000;
+}
+.notification.show { transform: translateX(0); }
+.notification.success { background-color: #28a745; }
+.notification.error { background-color: #dc3545; }
+.notification.info { background-color: #17a2b8; }
