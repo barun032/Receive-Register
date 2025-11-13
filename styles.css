@@ -1,35 +1,109 @@
 /* base */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #f5f7fa; color: #333; line-height: 1.6; padding: 20px; }
-.container { max-width: 1200px; margin: 0 auto; }
+.container { max-width: 1200px; margin: 0 auto; position: relative; }
 
 /* header */
 header { text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg,#4f6df5,#3a56d8); color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 h1 { font-size: 2.5rem; margin-bottom: 10px; }
 .subtitle { font-size: 1.1rem; opacity: 0.9; }
 
-/* layout */
-.main-content { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
-@media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
-
-.form-section{
-    height: fit-content;
+/* layout vars */
+:root {
+  --form-width: 340px;  /* fixed width for the form column */
+  --toggle-width: 36px;
+  --toggle-height: 88px;
+  --toggle-overlap: 12px; /* how much toggle overlaps form edge */
+  --transition-time: 320ms;
 }
 
-/* cards */
-.form-section, .table-section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.section-title { font-size: 1.5rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #4f6df5; color: #3a56d8; }
+/* main grid: two columns (form fixed, table flexible) */
+.main-content {
+  display: grid;
+  grid-template-columns: var(--form-width) 1fr;
+  gap: 16px;
+  transition: grid-template-columns var(--transition-time) ease;
+  align-items: start;
+  position: relative; /* so toggleBar can be absolute relative to this */
+  overflow: visible;
+}
 
+/* collapsed state: set first column to 0 so table takes whole width */
+.main-content.collapsed {
+  grid-template-columns: 0 1fr;
+}
+
+/* form card */
+.form-section{
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  transition: transform var(--transition-time) ease, opacity var(--transition-time) ease, width var(--transition-time);
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* enforce fixed width visually (helps on some browsers) */
+.form-section { max-width: var(--form-width); }
+
+/* when collapsed we hide the form (slide & fade) */
+.main-content.collapsed .form-section {
+  transform: translateX(-20px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* toggle bar - absolutely positioned so it doesn't take grid space */
+.toggle-bar {
+  position: absolute;
+  top: 48px; /* aligns vertically with form card inner area; tweak as needed */
+  left: calc(var(--form-width) - var(--toggle-overlap));
+  width: var(--toggle-width);
+  height: var(--toggle-height);
+  border-radius: 8px;
+  background: #4f6df5;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: left var(--transition-time) ease, transform var(--transition-time) ease, background var(--transition-time);
+  z-index: 50;
+}
+
+/* when collapsed, move toggle to the left edge (where form used to be) so it stays visible */
+.main-content.collapsed .toggle-bar {
+  left: calc(0px + var(--toggle-overlap));
+  transform: rotate(180deg);
+}
+
+/* small responsive adjustments */
+@media (max-width: 900px) {
+  :root { --form-width: 320px; --toggle-height: 72px; }
+  .toggle-bar { top: 40px; }
+}
+
+@media (max-width: 600px) {
+  /* switch to single column on small screens: form above table; toggle hidden */
+  .main-content { grid-template-columns: 1fr; }
+  .toggle-bar { display: none; }
+}
+
+/* rest of your original styles (kept) */
+.section-title { font-size: 1.5rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #4f6df5; color: #3a56d8; }
 .form-group { margin-bottom: 20px; }
 label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
-
 input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; transition: border 0.3s; }
 input:focus, select:focus { outline: none; border-color: #4f6df5; box-shadow: 0 0 0 2px rgba(79,109,245,0.2); }
-
 .btn { display: inline-block; background: #4f6df5; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s; text-align: center; }
 .btn:hover { background: #3a56d8; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 .btn-block { display: block; width: 100%; }
-
 .btn-success { background: #28a745; }
 .btn-success:hover { background: #218838; }
 .btn-danger { background: #dc3545; }
@@ -37,12 +111,19 @@ input:focus, select:focus { outline: none; border-color: #4f6df5; box-shadow: 0 
 .btn-warning { background: #ffc107; color: #212529; }
 .btn-warning:hover { background: #e0a800; }
 
-/* table */
+/* table styles */
+.table-section {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+  min-width: 0;
+  transition: width var(--transition-time) ease;
+}
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
 th { background-color: #f8f9fa; font-weight: 600; color: #3a56d8; }
 tr:hover { background-color: #f8f9fa; }
-
 .status-pending { background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
 .status-success { background-color: #d4edda; color: #155724; padding: 5px 10px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
 

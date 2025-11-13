@@ -13,8 +13,10 @@
         <p class="subtitle">Track and manage all your receive copies in one place</p>
       </header>
 
-      <div class="main-content">
-        <div class="form-section">
+      <!-- main-content is position:relative so toggleBar can be absolutely positioned -->
+      <div class="main-content" id="mainContent">
+        <!-- Form card -->
+        <div class="form-section" id="formSection" aria-hidden="false">
           <h2 class="section-title">Add New Receive</h2>
           <form id="receiveForm" autocomplete="off">
             <div class="form-group">
@@ -52,14 +54,19 @@
               <button id="printBtn" class="btn btn-warning">Print All Receives</button>
               <button id="clearAll" class="btn btn-danger">Clear All Data</button>
 
-              <!-- import controls (hidden file input triggered by button) -->
               <button id="importJsonFileBtn" class="btn">Import JSON File</button>
               <input type="file" id="importJsonFile" accept=".json" style="display:none" />
             </div>
           </div>
         </div>
 
-        <div class="table-section">
+        <!-- Toggle bar is in DOM but will be absolutely positioned via CSS so it doesn't affect layout -->
+        <button id="toggleBar" class="toggle-bar" aria-expanded="true" aria-controls="formSection" title="Hide / Show form">
+          ‹
+        </button>
+
+        <!-- Table -->
+        <div class="table-section" id="tableSection" tabindex="0">
           <h2 class="section-title">Received Copies</h2>
           <div id="tableContainer">
             <table id="receiveTable">

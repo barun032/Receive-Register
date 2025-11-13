@@ -1,4 +1,4 @@
-/* app.js - Receive Copy System (Operations column removed) */
+/* app.js - Receive Copy System (with corrected toggle behavior) */
 
 // DOM Elements
 const receiveForm = document.getElementById("receiveForm");
@@ -13,6 +13,10 @@ const notification = document.getElementById("notification");
 
 const importBtn = document.getElementById("importJsonFileBtn");
 const importFile = document.getElementById("importJsonFile");
+
+const mainContent = document.getElementById("mainContent");
+const toggleBar = document.getElementById("toggleBar");
+const formSection = document.getElementById("formSection");
 
 // State
 let receives = []; // will be loaded from receives.json on startup
@@ -281,6 +285,32 @@ importFile.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
+// Toggle form collapse/open
+function setCollapsedState(collapsed) {
+  if (collapsed) {
+    mainContent.classList.add("collapsed");
+    toggleBar.setAttribute("aria-expanded", "false");
+    formSection.setAttribute("aria-hidden", "true");
+    toggleBar.textContent = '›'; // arrow pointing right means "open"
+  } else {
+    mainContent.classList.remove("collapsed");
+    toggleBar.setAttribute("aria-expanded", "true");
+    formSection.setAttribute("aria-hidden", "false");
+    toggleBar.textContent = '‹'; // arrow pointing left means "close"
+  }
+}
+
+let collapsed = false;
+toggleBar.addEventListener("click", () => {
+  collapsed = !collapsed;
+  setCollapsedState(collapsed);
+  if (collapsed) {
+    document.getElementById("tableSection").focus?.();
+  } else {
+    document.getElementById("slNo").focus();
+  }
+});
+
 // Event listeners
 receiveForm.addEventListener("submit", addReceive);
 exportCsvBtn.addEventListener("click", exportToCSV);
@@ -290,9 +320,6 @@ clearAllBtn.addEventListener("click", clearAllData);
 
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
-  // Attempt to load from receives.json (requires running via HTTP server)
   loadReceivesFromJSON();
-
-  // Set today's date as default in the add form
   document.getElementById("date").value = new Date().toISOString().split("T")[0];
 });
