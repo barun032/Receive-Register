@@ -303,24 +303,53 @@ function closeModalFunc() {
 function addReceive(event) {
   event.preventDefault();
 
-  const slNo = document.getElementById("slNo").value.trim();
+  const consecutiveNo = document.getElementById("consecutiveNo").value.trim();
   const date = document.getElementById("date").value;
-  const subject = document.getElementById("subject").value.trim();
-  const action = document.getElementById("action").value;
+  const toWhomAddressed = document.getElementById("toWhomAddressed").value.trim();
+  const shortSubject = document.getElementById("shortSubject").value.trim();
+  const fileNo = document.getElementById("fileNo").value.trim();
+  const serialNoOfLetter = document.getElementById("serialNoOfLetter").value.trim();
+  const collectionNoTitle = document.getElementById("collectionNoTitle").value.trim();
+  const fileNoInCollection = document.getElementById("fileNoInCollection").value.trim();
+  const replyNo = document.getElementById("replyNo").value.trim();
+  const replyDate = document.getElementById("replyDate").value;
+  const reminderNo = document.getElementById("reminderNo").value.trim();
+  const reminderDate = document.getElementById("reminderDate").value;
+  const stampRs = document.getElementById("stampRs").value;
+  const stampP = document.getElementById("stampP").value;
+  const remarks = document.getElementById("remarks").value.trim();
 
-  if (!slNo || !date || !subject || !action) {
-    showNotification("Please fill all fields.", "error");
+  // Required fields validation
+  if (!consecutiveNo || !date || !toWhomAddressed || !shortSubject) {
+    showNotification("Please fill all required fields.", "error");
     return;
   }
 
-  const newReceive = { id: generateId(), slNo, date, subject, action };
+  const newReceive = { 
+    id: generateId(), 
+    consecutiveNo, 
+    date, 
+    toWhomAddressed, 
+    shortSubject,
+    fileNo,
+    serialNoOfLetter,
+    collectionNoTitle,
+    fileNoInCollection,
+    replyNo,
+    replyDate,
+    reminderNo,
+    reminderDate,
+    stampRs,
+    stampP,
+    remarks
+  };
+  
   receives.push(newReceive);
   saveToLocalStorage();
   updateStats();
 
   // Go to last page if new record doesn't fit on current page
-  const dataToRender =
-    filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
   if (recordsPerPage > 0) {
     const newTotalPages = Math.ceil(dataToRender.length / recordsPerPage);
     if (currentPage !== newTotalPages) {
@@ -333,6 +362,14 @@ function addReceive(event) {
 
   closeModalFunc();
   showNotification("Receive added successfully!", "success");
+}
+
+// Update the openModal function to focus on consecutiveNo instead of slNo
+function openModal() {
+  receiveModal.style.display = "block";
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("consecutiveNo").focus();
+  document.body.style.overflow = "hidden";
 }
 
 // Export CSV
