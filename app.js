@@ -45,7 +45,7 @@ let totalPages = 1;
 
 // Helpers
 function showNotification(message, type = "info") {
-  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
   notification.innerHTML = `${icon} ${message}`;
   notification.className = `notification ${type}`;
   notification.classList.add("show");
@@ -74,8 +74,12 @@ function saveToLocalStorage() {
 
 function updateStats() {
   totalReceives.textContent = receives.length;
-  pendingReceives.textContent = receives.filter(r => r.action === "pending").length;
-  successReceives.textContent = receives.filter(r => r.action === "success").length;
+  pendingReceives.textContent = receives.filter(
+    (r) => r.action === "pending"
+  ).length;
+  successReceives.textContent = receives.filter(
+    (r) => r.action === "success"
+  ).length;
 }
 
 // Search Functionality
@@ -83,10 +87,11 @@ function filterReceives(searchTerm) {
   if (!searchTerm) {
     filteredReceives = [...receives];
   } else {
-    filteredReceives = receives.filter(receive =>
-      receive.slNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      receive.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      receive.action.toLowerCase().includes(searchTerm.toLowerCase())
+    filteredReceives = receives.filter(
+      (receive) =>
+        receive.slNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        receive.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        receive.action.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
   currentPage = 1; // Reset to first page when searching
@@ -96,131 +101,137 @@ function filterReceives(searchTerm) {
 
 // Pagination Functions
 function getCurrentPageData() {
-  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
-  
+  const dataToRender =
+    filteredReceives.length > 0 ? filteredReceives : receives;
+
   if (recordsPerPage === 0) {
     return dataToRender; // Show all records
   }
-  
+
   const startIndex = (currentPage - 1) * recordsPerPage;
   const endIndex = startIndex + recordsPerPage;
   return dataToRender.slice(startIndex, endIndex);
 }
 
 function updatePagination() {
-  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender =
+    filteredReceives.length > 0 ? filteredReceives : receives;
   const totalRecords = dataToRender.length;
-  
+
   if (recordsPerPage === 0) {
     totalPages = 1;
   } else {
     totalPages = Math.ceil(totalRecords / recordsPerPage);
   }
-  
+
   // Show/hide pagination
   if (totalRecords > (recordsPerPage === 0 ? 0 : recordsPerPage)) {
-    paginationContainer.classList.add('show');
+    paginationContainer.classList.add("show");
   } else {
-    paginationContainer.classList.remove('show');
+    paginationContainer.classList.remove("show");
   }
-  
+
   // Update pagination info
   if (recordsPerPage === 0) {
     paginationInfo.textContent = `Showing all ${totalRecords} records`;
   } else {
-    const startRecord = ((currentPage - 1) * recordsPerPage) + 1;
+    const startRecord = (currentPage - 1) * recordsPerPage + 1;
     const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
     paginationInfo.textContent = `Showing ${startRecord}-${endRecord} of ${totalRecords} records`;
   }
-  
+
   // Update button states
   firstPageBtn.disabled = currentPage === 1;
   prevPageBtn.disabled = currentPage === 1;
   nextPageBtn.disabled = currentPage === totalPages;
   lastPageBtn.disabled = currentPage === totalPages;
-  
+
   // Generate page numbers
   generatePageNumbers();
 }
 
 function generatePageNumbers() {
-  pageNumbers.innerHTML = '';
-  
+  pageNumbers.innerHTML = "";
+
   if (totalPages <= 1) return;
-  
+
   const maxVisiblePages = 5;
   let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
   let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
+
   // Adjust if we're at the end
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
-  
+
   // First page and ellipsis
   if (startPage > 1) {
     const firstPageBtn = createPageNumber(1);
     pageNumbers.appendChild(firstPageBtn);
-    
+
     if (startPage > 2) {
-      const ellipsis = document.createElement('span');
-      ellipsis.className = 'page-number ellipsis';
-      ellipsis.textContent = '...';
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-number ellipsis";
+      ellipsis.textContent = "...";
       pageNumbers.appendChild(ellipsis);
     }
   }
-  
+
   // Page numbers
   for (let i = startPage; i <= endPage; i++) {
     const pageBtn = createPageNumber(i);
     if (i === currentPage) {
-      pageBtn.classList.add('active');
+      pageBtn.classList.add("active");
     }
     pageNumbers.appendChild(pageBtn);
   }
-  
+
   // Last page and ellipsis
   if (endPage < totalPages) {
     if (endPage < totalPages - 1) {
-      const ellipsis = document.createElement('span');
-      ellipsis.className = 'page-number ellipsis';
-      ellipsis.textContent = '...';
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-number ellipsis";
+      ellipsis.textContent = "...";
       pageNumbers.appendChild(ellipsis);
     }
-    
+
     const lastPageBtn = createPageNumber(totalPages);
     pageNumbers.appendChild(lastPageBtn);
   }
 }
 
 function createPageNumber(page) {
-  const pageBtn = document.createElement('button');
-  pageBtn.className = 'page-number';
+  const pageBtn = document.createElement("button");
+  pageBtn.className = "page-number";
   pageBtn.textContent = page;
-  pageBtn.addEventListener('click', () => goToPage(page));
+  pageBtn.addEventListener("click", () => goToPage(page));
   return pageBtn;
 }
 
 function goToPage(page) {
   if (page < 1 || page > totalPages) return;
-  
+
   currentPage = page;
   renderTable();
   updatePagination();
-  
+
   // Scroll to top of table
-  tableBody.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  tableBody.parentElement.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
 }
 
 // Render
 function renderTable() {
   const currentPageData = getCurrentPageData();
-  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
-  
+  const dataToRender =
+    filteredReceives.length > 0 ? filteredReceives : receives;
+
   if (dataToRender.length === 0) {
     emptyState.style.display = "block";
     receiveTable.style.display = "none";
-    paginationContainer.classList.remove('show');
+    paginationContainer.classList.remove("show");
     tableBody.innerHTML = "";
     return;
   }
@@ -235,7 +246,9 @@ function renderTable() {
         <td><strong>${receive.slNo}</strong></td>
         <td>${formatDate(receive.date)}</td>
         <td>${receive.subject}</td>
-        <td><span class="status-${receive.action}">${receive.action.charAt(0).toUpperCase() + receive.action.slice(1)}</span></td>
+        <td><span class="status-${receive.action}">${
+        receive.action.charAt(0).toUpperCase() + receive.action.slice(1)
+      }</span></td>
       </tr>
     `
     )
@@ -248,8 +261,9 @@ async function loadReceivesFromJSON() {
     const response = await fetch("receives.json");
     if (!response.ok) throw new Error("receives.json not found");
     const data = await response.json();
-    if (!Array.isArray(data)) throw new Error("Invalid JSON format: expected array");
-    receives = data.map(item => ({ id: item.id || generateId(), ...item }));
+    if (!Array.isArray(data))
+      throw new Error("Invalid JSON format: expected array");
+    receives = data.map((item) => ({ id: item.id || generateId(), ...item }));
     saveToLocalStorage();
     updateStats();
     renderTable();
@@ -272,7 +286,9 @@ async function loadReceivesFromJSON() {
 // Modal Functions
 function openModal() {
   receiveModal.style.display = "block";
-  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("date").value = new Date()
+    .toISOString()
+    .split("T")[0];
   document.getElementById("slNo").focus();
   document.body.style.overflow = "hidden";
 }
@@ -301,16 +317,17 @@ function addReceive(event) {
   receives.push(newReceive);
   saveToLocalStorage();
   updateStats();
-  
+
   // Go to last page if new record doesn't fit on current page
-  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender =
+    filteredReceives.length > 0 ? filteredReceives : receives;
   if (recordsPerPage > 0) {
     const newTotalPages = Math.ceil(dataToRender.length / recordsPerPage);
     if (currentPage !== newTotalPages) {
       currentPage = newTotalPages;
     }
   }
-  
+
   renderTable();
   updatePagination();
 
@@ -328,7 +345,11 @@ function exportToCSV() {
   const headers = ["SL No", "Date", "Subject", "Action"];
   const csvContent = [
     headers.join(","),
-    ...receives.map(r => [`"${r.slNo}"`, `"${r.date}"`, `"${r.subject}"`, `"${r.action}"`].join(","))
+    ...receives.map((r) =>
+      [`"${r.slNo}"`, `"${r.date}"`, `"${r.subject}"`, `"${r.action}"`].join(
+        ","
+      )
+    ),
   ].join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv" });
@@ -365,27 +386,40 @@ function exportToJSON() {
   showNotification("Data exported as JSON!", "success");
 }
 
-// Print receives
+// Print receives (only visible/current page records) - Direct print
 function printReceives() {
-  if (receives.length === 0) {
+  const dataToPrint = getCurrentPageData();
+  const totalRecords =
+    filteredReceives.length > 0 ? filteredReceives : receives;
+
+  if (dataToPrint.length === 0) {
     showNotification("No data to print!", "error");
     return;
   }
 
-  const printWindow = window.open("", "_blank");
   const printDate = new Date().toLocaleDateString();
+  const currentPageInfo =
+    recordsPerPage === 0
+      ? "Showing all records"
+      : `Page ${currentPage} of ${totalPages}`;
+
+  // Create a temporary iframe for printing
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "absolute";
+  iframe.style.left = "-9999px";
+  document.body.appendChild(iframe);
 
   const printContent = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>Receive Copy Report</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-          .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+          body { font-family: Arial, sans-serif; margin: 10px; color: #333; }
+          .print-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
           .print-header h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
+          .print-info { text-align: center; margin-bottom: 10px; font-style: italic; color: #666; }
           .print-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
           .print-table th, .print-table td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
           .print-table th { background-color: #f2f2f2; font-weight: bold; color: #333; }
@@ -401,7 +435,6 @@ function printReceives() {
           <h1>Receive Copy Report</h1>
           <p>Generated on: ${printDate}</p>
         </div>
-
         <table class="print-table">
           <thead>
             <tr>
@@ -412,34 +445,38 @@ function printReceives() {
             </tr>
           </thead>
           <tbody>
-            ${receives.map(r => `
+            ${dataToPrint
+              .map(
+                (r) => `
               <tr>
                 <td>${r.slNo}</td>
                 <td>${formatDateForPrint(r.date)}</td>
                 <td>${r.subject}</td>
-                <td><span class="print-status print-status-${r.action}">${r.action.charAt(0).toUpperCase() + r.action.slice(1)}</span></td>
+                <td><span class="print-status print-status-${r.action}">${
+                  r.action.charAt(0).toUpperCase() + r.action.slice(1)
+                }</span></td>
               </tr>
-            `).join("")}
+            `
+              )
+              .join("")}
           </tbody>
         </table>
-
-        <div class="print-footer">
-          <p>Total Receives: ${receives.length} | Pending: ${receives.filter(r => r.action === "pending").length} | Success: ${receives.filter(r => r.action === "success").length}</p>
-        </div>
       </body>
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(printContent);
-  printWindow.document.close();
+  iframe.contentDocument.write(printContent);
+  iframe.contentDocument.close();
 
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+
+  // Clean up after printing
   setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
-  }, 250);
+    document.body.removeChild(iframe);
+  }, 1000);
 
-  showNotification("Print dialog opened!", "info");
+  showNotification(`Printing ${dataToPrint.length} visible records!`, "info");
 }
 
 // Clear all
@@ -448,7 +485,12 @@ function clearAllData() {
     showNotification("No data to clear!", "error");
     return;
   }
-  if (!confirm("Are you sure you want to delete all receive data? This action cannot be undone.")) return;
+  if (
+    !confirm(
+      "Are you sure you want to delete all receive data? This action cannot be undone."
+    )
+  )
+    return;
   receives = [];
   filteredReceives = [];
   currentPage = 1;
@@ -470,7 +512,7 @@ importFile.addEventListener("change", () => {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data)) throw new Error("JSON must be an array");
-      receives = data.map(item => ({ id: item.id || generateId(), ...item }));
+      receives = data.map((item) => ({ id: item.id || generateId(), ...item }));
       saveToLocalStorage();
       updateStats();
       renderTable();
