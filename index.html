@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Receive Copy System</title>
     <link rel="stylesheet" href="styles.css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
@@ -97,19 +100,38 @@
           </div>
 
           <div class="table-container">
+            <!-- Multi-row header table -->
             <table id="receiveTable">
               <thead>
                 <tr>
-                  <th>SL No</th>
+                  <th rowspan="2">Consecutive No.</th>
+                  <th rowspan="2">Date</th>
+                  <th rowspan="2">To whom addressed</th>
+                  <th rowspan="2">Short subject</th>
+
+                  <th colspan="3">Where the draft is placed</th>
+
+                  <th rowspan="2">No. and date of reply received</th>
+                  <th colspan="2">Reminder</th>
+                  <th colspan="2">Value of Stamp</th>
+                  <th rowspan="2">Remarks</th>
+                </tr>
+                <tr>
+                  <th>File No. &amp; Serial No. of letter of file</th>
+                  <th>No. &amp; title of the collection</th>
+                  <th>No. of file within the collection</th>
+
+                  <th>No.</th>
                   <th>Date</th>
-                  <th>Subject</th>
-                  <th>Status</th>
+
+                  <th>Rs.</th>
+                  <th>P.</th>
                 </tr>
               </thead>
               <tbody id="tableBody"></tbody>
             </table>
 
-            <div id="emptyState" class="empty-state">
+            <div id="emptyState" class="empty-state" style="display:none;">
               <div class="empty-icon">
                 <i class="fas fa-inbox"></i>
               </div>
@@ -120,68 +142,48 @@
                 Create First Receive
               </button>
             </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container" id="paginationContainer" style="display:none;">
+              <div class="pagination-controls">
+                <div class="pagination-info">
+                  <span id="paginationInfo">Showing 0-0 of 0 records</span>
+                </div>
+
+                <div class="pagination-buttons">
+                  <button id="firstPage" class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-left"></i>
+                  </button>
+                  <button id="prevPage" class="pagination-btn" disabled>
+                    <i class="fas fa-angle-left"></i>
+                  </button>
+
+                  <div class="page-numbers" id="pageNumbers"></div>
+
+                  <button id="nextPage" class="pagination-btn" disabled>
+                    <i class="fas fa-angle-right"></i>
+                  </button>
+                  <button id="lastPage" class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-right"></i>
+                  </button>
+                </div>
+
+                <div class="records-per-page">
+                  <label for="recordsPerPage">
+                    <i class="fas fa-list-ol"></i>
+                    Show:
+                  </label>
+                  <select id="recordsPerPage">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="0">All</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <!-- Add this after the table-container div, before the empty-state div closes -->
-<div class="table-container">
-  <table id="receiveTable">
-    <thead>
-      <tr>
-        <th>SL No</th>
-        <th>Date</th>
-        <th>Subject</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-
-  <!-- Pagination Controls -->
-  <div class="pagination-container" id="paginationContainer">
-    <div class="pagination-controls">
-      <div class="pagination-info">
-        <span id="paginationInfo">Showing 0-0 of 0 records</span>
-      </div>
-      
-      <div class="pagination-buttons">
-        <button id="firstPage" class="pagination-btn" disabled>
-          <i class="fas fa-angle-double-left"></i>
-        </button>
-        <button id="prevPage" class="pagination-btn" disabled>
-          <i class="fas fa-angle-left"></i>
-        </button>
-        
-        <div class="page-numbers" id="pageNumbers">
-          <!-- Page numbers will be generated here -->
-        </div>
-        
-        <button id="nextPage" class="pagination-btn" disabled>
-          <i class="fas fa-angle-right"></i>
-        </button>
-        <button id="lastPage" class="pagination-btn" disabled>
-          <i class="fas fa-angle-double-right"></i>
-        </button>
-      </div>
-
-      <div class="records-per-page">
-        <label for="recordsPerPage">
-          <i class="fas fa-list-ol"></i>
-          Show:
-        </label>
-        <select id="recordsPerPage">
-          <option value="10">10</option>
-          <option value="20" selected>20</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="0">All</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <div id="emptyState" class="empty-state">
-    <!-- ... existing empty state content ... -->
-  </div>
-</div>
         </div>
       </main>
 
@@ -190,174 +192,124 @@
       </footer>
     </div>
 
-<!-- Modal -->
-<div id="receiveModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">
-        <i class="fas fa-plus-circle"></i>
-        <h2>Create New Receive</h2>
+    <!-- Modal -->
+    <div id="receiveModal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">
+            <i class="fas fa-plus-circle"></i>
+            <h2>Create New Receive</h2>
+          </div>
+          <button class="close-btn" id="closeModal" title="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form id="receiveForm" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="consecutiveNo"><i class="fas fa-hashtag"></i> Consecutive No.</label>
+              <input type="text" id="consecutiveNo" placeholder="Enter consecutive number" required />
+            </div>
+
+            <div class="form-group">
+              <label for="date"><i class="fas fa-calendar"></i> Date</label>
+              <input type="date" id="date" required />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="toWhomAddressed"><i class="fas fa-user"></i> To Whom Addressed</label>
+              <input type="text" id="toWhomAddressed" placeholder="Enter recipient details" required />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="shortSubject"><i class="fas fa-align-left"></i> Short Subject</label>
+              <input type="text" id="shortSubject" placeholder="Enter short subject description" required />
+            </div>
+
+            <!-- Where the draft is placed -->
+            <div class="form-group full-width">
+              <h4><i class="fas fa-folder"></i> Where the draft is placed</h4>
+            </div>
+
+            <div class="form-group">
+              <label for="fileNo"><i class="fas fa-file"></i> File No.</label>
+              <input type="text" id="fileNo" placeholder="File number" />
+            </div>
+
+            <div class="form-group">
+              <label for="serialNoOfLetter"><i class="fas fa-list-ol"></i> Serial No. of letter</label>
+              <input type="text" id="serialNoOfLetter" placeholder="Serial number" />
+            </div>
+
+            <div class="form-group">
+              <label for="collectionNoTitle"><i class="fas fa-archive"></i> No. and title of collection</label>
+              <input type="text" id="collectionNoTitle" placeholder="Collection details" />
+            </div>
+
+            <div class="form-group">
+              <label for="fileNoInCollection"><i class="fas fa-folder-open"></i> No. of file within collection</label>
+              <input type="text" id="fileNoInCollection" placeholder="File number in collection" />
+            </div>
+
+            <!-- Reply Information -->
+            <div class="form-group">
+              <label for="replyNo"><i class="fas fa-reply"></i> No. of reply received</label>
+              <input type="text" id="replyNo" placeholder="Reply number" />
+            </div>
+
+            <div class="form-group">
+              <label for="replyDate"><i class="fas fa-calendar-check"></i> Date of reply received</label>
+              <input type="date" id="replyDate" />
+            </div>
+
+            <!-- Reminder -->
+            <div class="form-group full-width">
+              <h4><i class="fas fa-bell"></i> Reminder</h4>
+            </div>
+
+            <div class="form-group">
+              <label for="reminderNo"><i class="fas fa-hashtag"></i> No.</label>
+              <input type="text" id="reminderNo" placeholder="Reminder number" />
+            </div>
+
+            <div class="form-group">
+              <label for="reminderDate"><i class="fas fa-calendar-alt"></i> Date</label>
+              <input type="date" id="reminderDate" />
+            </div>
+
+            <!-- Value of Stamp -->
+            <div class="form-group full-width">
+              <h4><i class="fas fa-stamp"></i> Value of Stamp</h4>
+            </div>
+
+            <div class="form-group">
+              <label for="stampRs"><i class="fas fa-rupee-sign"></i> Rs.</label>
+              <input type="number" id="stampRs" placeholder="0.00" step="0.01" min="0" />
+            </div>
+
+            <div class="form-group">
+              <label for="stampP"><i class="fas fa-coins"></i> P.</label>
+              <input type="number" id="stampP" placeholder="00" step="1" min="0" max="99" />
+            </div>
+
+            <!-- Remarks -->
+            <div class="form-group full-width">
+              <label for="remarks"><i class="fas fa-comment"></i> Remarks</label>
+              <textarea id="remarks" placeholder="Enter any remarks or additional notes" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="createFirstReceiveBtn" class="btn btn-primary">Save Receive</button>
+          </div>
+        </form>
       </div>
-      <button class="close-btn" id="closeModal">
-        <i class="fas fa-times"></i>
-      </button>
     </div>
-    
-    <form id="receiveForm" autocomplete="off">
-      <div class="form-grid">
-        <!-- Basic Information -->
-        <div class="form-group">
-          <label for="consecutiveNo">
-            <i class="fas fa-hashtag"></i>
-            Consecutive No.
-          </label>
-          <input type="text" id="consecutiveNo" placeholder="Enter consecutive number" required />
-        </div>
 
-        <div class="form-group">
-          <label for="date">
-            <i class="fas fa-calendar"></i>
-            Date
-          </label>
-          <input type="date" id="date" required />
-        </div>
-
-        <div class="form-group full-width">
-          <label for="toWhomAddressed">
-            <i class="fas fa-user"></i>
-            To Whom Addressed
-          </label>
-          <input type="text" id="toWhomAddressed" placeholder="Enter recipient details" required />
-        </div>
-
-        <div class="form-group full-width">
-          <label for="shortSubject">
-            <i class="fas fa-align-left"></i>
-            Short Subject
-          </label>
-          <input type="text" id="shortSubject" placeholder="Enter short subject description" required />
-        </div>
-
-        <!-- Where the draft is placed - Group -->
-        <div class="form-group full-width">
-          <h4><i class="fas fa-folder"></i> Where the draft is placed</h4>
-        </div>
-
-        <div class="form-group">
-          <label for="fileNo">
-            <i class="fas fa-file"></i>
-            File No.
-          </label>
-          <input type="text" id="fileNo" placeholder="File number" />
-        </div>
-
-        <div class="form-group">
-          <label for="serialNoOfLetter">
-            <i class="fas fa-list-ol"></i>
-            Serial No. of letter
-          </label>
-          <input type="text" id="serialNoOfLetter" placeholder="Serial number" />
-        </div>
-
-        <div class="form-group">
-          <label for="collectionNoTitle">
-            <i class="fas fa-archive"></i>
-            No. and title of collection
-          </label>
-          <input type="text" id="collectionNoTitle" placeholder="Collection details" />
-        </div>
-
-        <div class="form-group">
-          <label for="fileNoInCollection">
-            <i class="fas fa-folder-open"></i>
-            No. of file within collection
-          </label>
-          <input type="text" id="fileNoInCollection" placeholder="File number in collection" />
-        </div>
-
-        <!-- Reply Information -->
-        <div class="form-group">
-          <label for="replyNo">
-            <i class="fas fa-reply"></i>
-            No. of reply received
-          </label>
-          <input type="text" id="replyNo" placeholder="Reply number" />
-        </div>
-
-        <div class="form-group">
-          <label for="replyDate">
-            <i class="fas fa-calendar-check"></i>
-            Date of reply received
-          </label>
-          <input type="date" id="replyDate" />
-        </div>
-
-        <!-- Reminder - Group -->
-        <div class="form-group full-width">
-          <h4><i class="fas fa-bell"></i> Reminder</h4>
-        </div>
-
-        <div class="form-group">
-          <label for="reminderNo">
-            <i class="fas fa-hashtag"></i>
-            No.
-          </label>
-          <input type="text" id="reminderNo" placeholder="Reminder number" />
-        </div>
-
-        <div class="form-group">
-          <label for="reminderDate">
-            <i class="fas fa-calendar-alt"></i>
-            Date
-          </label>
-          <input type="date" id="reminderDate" />
-        </div>
-
-        <!-- Value of Stamp - Group -->
-        <div class="form-group full-width">
-          <h4><i class="fas fa-stamp"></i> Value of Stamp</h4>
-        </div>
-
-        <div class="form-group">
-          <label for="stampRs">
-            <i class="fas fa-rupee-sign"></i>
-            Rs.
-          </label>
-          <input type="number" id="stampRs" placeholder="0.00" step="0.01" min="0" />
-        </div>
-
-        <div class="form-group">
-          <label for="stampP">
-            <i class="fas fa-coins"></i>
-            P.
-          </label>
-          <input type="number" id="stampP" placeholder="00" step="1" min="0" max="99" />
-        </div>
-
-        <!-- Remarks -->
-        <div class="form-group full-width">
-          <label for="remarks">
-            <i class="fas fa-comment"></i>
-            Remarks
-          </label>
-          <textarea id="remarks" placeholder="Enter any remarks or additional notes" rows="3"></textarea>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="cancelBtn">
-          <i class="fas fa-times"></i>
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save"></i>
-          Save Receive
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-    <div id="notification" class="notification"></div>
+    <!-- Notification -->
+    <div id="notification" class="notification" style="display:none;"></div>
 
     <script src="app.js"></script>
   </body>

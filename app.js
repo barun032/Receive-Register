@@ -1,4 +1,4 @@
-/* app.js - Receive Copy System (Modern UI with Pagination) */
+/* app.js - Receive Copy System (Full) */
 
 // DOM Elements
 const receiveForm = document.getElementById("receiveForm");
@@ -40,16 +40,20 @@ const successReceives = document.getElementById("successReceives");
 let receives = [];
 let filteredReceives = [];
 let currentPage = 1;
-let recordsPerPage = 20;
+let recordsPerPage = parseInt(recordsPerPageSelect.value, 10) || 20;
 let totalPages = 1;
 
 // Helpers
 function showNotification(message, type = "info") {
-  const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
-  notification.innerHTML = `${icon} ${message}`;
-  notification.className = `notification ${type}`;
-  notification.classList.add("show");
-  setTimeout(() => notification.classList.remove("show"), 3000);
+  notification.innerHTML = `${
+    type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️"
+  } ${message}`;
+  notification.className = `notification ${type} show`;
+  notification.style.display = "flex";
+  setTimeout(() => {
+    notification.classList.remove("show");
+    notification.style.display = "none";
+  }, 2500);
 }
 
 function generateId() {
@@ -58,14 +62,22 @@ function generateId() {
 
 function formatDate(dateString) {
   if (!dateString) return "";
-  const options = { year: "numeric", month: "short", day: "numeric" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+  try {
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  } catch {
+    return dateString;
+  }
 }
 
 function formatDateForPrint(dateString) {
   if (!dateString) return "";
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+  try {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  } catch {
+    return dateString;
+  }
 }
 
 function saveToLocalStorage() {
@@ -75,26 +87,36 @@ function saveToLocalStorage() {
 function updateStats() {
   totalReceives.textContent = receives.length;
   pendingReceives.textContent = receives.filter(
-    (r) => r.action === "pending"
+    (r) => (r.action || "").toLowerCase() === "pending"
   ).length;
   successReceives.textContent = receives.filter(
-    (r) => r.action === "success"
+    (r) => (r.action || "").toLowerCase() === "success"
   ).length;
 }
 
 // Search Functionality
 function filterReceives(searchTerm) {
   if (!searchTerm) {
-    filteredReceives = [...receives];
+    filteredReceives = [];
   } else {
-    filteredReceives = receives.filter(
-      (receive) =>
-        receive.slNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        receive.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        receive.action.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    filteredReceives = receives.filter((receive) => {
+      const haystack = [
+        receive.consecutiveNo,
+        receive.slNo,
+        receive.subject,
+        receive.shortSubject,
+        receive.toWhomAddressed,
+        receive.action,
+        receive.fileNo,
+        receive.collectionNoTitle,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(searchTerm.toLowerCase());
+    });
   }
-  currentPage = 1; // Reset to first page when searching
+  currentPage = 1;
   renderTable();
   updatePagination();
 }
@@ -105,7 +127,7 @@ function getCurrentPageData() {
     filteredReceives.length > 0 ? filteredReceives : receives;
 
   if (recordsPerPage === 0) {
-    return dataToRender; // Show all records
+    return dataToRender; // show all
   }
 
   const startIndex = (currentPage - 1) * recordsPerPage;
@@ -118,85 +140,77 @@ function updatePagination() {
     filteredReceives.length > 0 ? filteredReceives : receives;
   const totalRecords = dataToRender.length;
 
-  if (recordsPerPage === 0) {
-    totalPages = 1;
-  } else {
-    totalPages = Math.ceil(totalRecords / recordsPerPage);
-  }
+  totalPages =
+    recordsPerPage === 0
+      ? 1
+      : Math.max(1, Math.ceil(totalRecords / recordsPerPage));
 
   // Show/hide pagination
   if (totalRecords > (recordsPerPage === 0 ? 0 : recordsPerPage)) {
     paginationContainer.classList.add("show");
+    paginationContainer.style.display = "block";
   } else {
     paginationContainer.classList.remove("show");
+    paginationContainer.style.display = "none";
   }
 
-  // Update pagination info
+  // Update info text
   if (recordsPerPage === 0) {
     paginationInfo.textContent = `Showing all ${totalRecords} records`;
+  } else if (totalRecords === 0) {
+    paginationInfo.textContent = `Showing 0 records`;
   } else {
     const startRecord = (currentPage - 1) * recordsPerPage + 1;
     const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
     paginationInfo.textContent = `Showing ${startRecord}-${endRecord} of ${totalRecords} records`;
   }
 
-  // Update button states
   firstPageBtn.disabled = currentPage === 1;
   prevPageBtn.disabled = currentPage === 1;
   nextPageBtn.disabled = currentPage === totalPages;
   lastPageBtn.disabled = currentPage === totalPages;
 
-  // Generate page numbers
   generatePageNumbers();
 }
 
 function generatePageNumbers() {
   pageNumbers.innerHTML = "";
-
   if (totalPages <= 1) return;
 
   const maxVisiblePages = 5;
   let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
   let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-  // Adjust if we're at the end
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
 
-  // First page and ellipsis
   if (startPage > 1) {
-    const firstPageBtn = createPageNumber(1);
-    pageNumbers.appendChild(firstPageBtn);
-
+    const btn = createPageNumber(1);
+    pageNumbers.appendChild(btn);
     if (startPage > 2) {
-      const ellipsis = document.createElement("span");
-      ellipsis.className = "page-number ellipsis";
-      ellipsis.textContent = "...";
-      pageNumbers.appendChild(ellipsis);
+      const ell = document.createElement("span");
+      ell.className = "page-number ellipsis";
+      ell.textContent = "...";
+      pageNumbers.appendChild(ell);
     }
   }
 
-  // Page numbers
   for (let i = startPage; i <= endPage; i++) {
-    const pageBtn = createPageNumber(i);
-    if (i === currentPage) {
-      pageBtn.classList.add("active");
-    }
-    pageNumbers.appendChild(pageBtn);
+    const btn = createPageNumber(i);
+    if (i === currentPage) btn.classList.add("active");
+    pageNumbers.appendChild(btn);
   }
 
-  // Last page and ellipsis
   if (endPage < totalPages) {
     if (endPage < totalPages - 1) {
-      const ellipsis = document.createElement("span");
-      ellipsis.className = "page-number ellipsis";
-      ellipsis.textContent = "...";
-      pageNumbers.appendChild(ellipsis);
+      const ell = document.createElement("span");
+      ell.className = "page-number ellipsis";
+      ell.textContent = "...";
+      pageNumbers.appendChild(ell);
     }
-
-    const lastPageBtn = createPageNumber(totalPages);
-    pageNumbers.appendChild(lastPageBtn);
+    const lastBtn = createPageNumber(totalPages);
+    pageNumbers.appendChild(lastBtn);
   }
 }
 
@@ -210,25 +224,22 @@ function createPageNumber(page) {
 
 function goToPage(page) {
   if (page < 1 || page > totalPages) return;
-
   currentPage = page;
   renderTable();
   updatePagination();
-
-  // Scroll to top of table
-  tableBody.parentElement.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
+  // Scroll table into view
+  document
+    .getElementById("receiveTable")
+    .scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// Render
+// Render - updated to include full form fields
 function renderTable() {
   const currentPageData = getCurrentPageData();
   const dataToRender =
     filteredReceives.length > 0 ? filteredReceives : receives;
 
-  if (dataToRender.length === 0) {
+  if (!dataToRender || dataToRender.length === 0) {
     emptyState.style.display = "block";
     receiveTable.style.display = "none";
     paginationContainer.classList.remove("show");
@@ -240,22 +251,76 @@ function renderTable() {
   receiveTable.style.display = "table";
 
   tableBody.innerHTML = currentPageData
-    .map(
-      (receive, index) => `
-      <tr>
-        <td><strong>${receive.slNo}</strong></td>
-        <td>${formatDate(receive.date)}</td>
-        <td>${receive.subject}</td>
-        <td><span class="status-${receive.action}">${
-        receive.action.charAt(0).toUpperCase() + receive.action.slice(1)
-      }</span></td>
-      </tr>
-    `
-    )
+    .map((r) => {
+      const consecutiveNo = r.consecutiveNo || "";
+      const date = formatDate(r.date);
+      const toWhom = r.toWhomAddressed || "";
+      const shortSubject = r.shortSubject || "";
+
+      const fileNo = r.fileNo || "";
+      const serial = r.serialNoOfLetter || "";
+      const fileAndSerial = [fileNo, serial].filter(Boolean).join(" / ");
+
+      const collection = r.collectionNoTitle || "";
+      const fileInCollection = r.fileNoInCollection || "";
+
+      const replyNo = r.replyNo || "";
+      const replyDate = r.replyDate ? formatDate(r.replyDate) : "";
+
+      const reminderNo = r.reminderNo || "";
+      const reminderDate = r.reminderDate ? formatDate(r.reminderDate) : "";
+
+      const stampRs = r.stampRs || "";
+      const stampP = r.stampP || "";
+      const remarks = r.remarks || "";
+
+      return `
+        <tr>
+          <td>${escapeHtml(consecutiveNo)}</td>
+          <td>${escapeHtml(date)}</td>
+          <td style="text-align:left;">${escapeHtml(toWhom)}</td>
+          <td style="text-align:left;">${escapeHtml(shortSubject)}</td>
+
+          <td style="text-align:left;">${escapeHtml(fileAndSerial)}</td>
+          <td style="text-align:left;">${escapeHtml(collection)}</td>
+          <td>${escapeHtml(fileInCollection)}</td>
+
+          <td style="text-align:left;">
+            ${replyNo ? `<div>${escapeHtml(replyNo)}</div>` : ""}
+            ${
+              replyDate
+                ? `<div style="font-size:0.9em;color:#555">${escapeHtml(
+                    replyDate
+                  )}</div>`
+                : ""
+            }
+          </td>
+
+          <td>${escapeHtml(reminderNo)}</td>
+          <td>${escapeHtml(reminderDate)}</td>
+
+          <td>${escapeHtml(stampRs)}</td>
+          <td>${escapeHtml(stampP)}</td>
+
+          <td style="text-align:left;">${escapeHtml(remarks)}</td>
+        </tr>
+      `;
+    })
     .join("");
 }
 
-// Load receives.json
+// Basic HTML escape
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+// Load receives.json (on first load) then fallback to localStorage
 async function loadReceivesFromJSON() {
   try {
     const response = await fetch("receives.json");
@@ -263,15 +328,40 @@ async function loadReceivesFromJSON() {
     const data = await response.json();
     if (!Array.isArray(data))
       throw new Error("Invalid JSON format: expected array");
-    receives = data.map((item) => ({ id: item.id || generateId(), ...item }));
-    saveToLocalStorage();
+    // Map to expected shape (allow both old small records and full-form records)
+    receives = data.map((item) => ({
+      id: item.id || generateId(),
+      slNo: item.slNo || item.consecutiveNo || "",
+      action: item.action || item.status || "",
+      date: item.date || "",
+      subject: item.subject || item.shortSubject || "",
+      consecutiveNo: item.consecutiveNo || item.slNo || "",
+      toWhomAddressed: item.toWhomAddressed || "",
+      shortSubject: item.shortSubject || item.subject || "",
+      fileNo: item.fileNo || "",
+      serialNoOfLetter: item.serialNoOfLetter || "",
+      collectionNoTitle: item.collectionNoTitle || "",
+      fileNoInCollection: item.fileNoInCollection || "",
+      replyNo: item.replyNo || "",
+      replyDate: item.replyDate || "",
+      reminderNo: item.reminderNo || "",
+      reminderDate: item.reminderDate || "",
+      stampRs: item.stampRs || "",
+      stampP: item.stampP || "",
+      remarks: item.remarks || "",
+    }));
+    // if there's localStorage data, prefer localStorage to preserve user edits
+    const fromLS = JSON.parse(localStorage.getItem("receives") || "null");
+    if (Array.isArray(fromLS) && fromLS.length) {
+      receives = fromLS;
+    } else {
+      saveToLocalStorage();
+    }
     updateStats();
     renderTable();
     updatePagination();
-    console.info("receives.json loaded");
   } catch (err) {
     console.error("Error loading receives.json:", err);
-    showNotification("Failed to load receives.json", "error");
     const fromLS = JSON.parse(localStorage.getItem("receives") || "null");
     if (Array.isArray(fromLS) && fromLS.length) {
       receives = fromLS;
@@ -279,6 +369,12 @@ async function loadReceivesFromJSON() {
       renderTable();
       updatePagination();
       showNotification("Loaded data from localStorage", "info");
+    } else {
+      receives = [];
+      updateStats();
+      renderTable();
+      updatePagination();
+      showNotification("No initial data found", "info");
     }
   }
 }
@@ -286,15 +382,17 @@ async function loadReceivesFromJSON() {
 // Modal Functions
 function openModal() {
   receiveModal.style.display = "block";
+  receiveModal.setAttribute("aria-hidden", "false");
   document.getElementById("date").value = new Date()
     .toISOString()
     .split("T")[0];
-  document.getElementById("slNo").focus();
+  document.getElementById("consecutiveNo").focus();
   document.body.style.overflow = "hidden";
 }
 
 function closeModalFunc() {
   receiveModal.style.display = "none";
+  receiveModal.setAttribute("aria-hidden", "true");
   receiveForm.reset();
   document.body.style.overflow = "auto";
 }
@@ -305,12 +403,20 @@ function addReceive(event) {
 
   const consecutiveNo = document.getElementById("consecutiveNo").value.trim();
   const date = document.getElementById("date").value;
-  const toWhomAddressed = document.getElementById("toWhomAddressed").value.trim();
+  const toWhomAddressed = document
+    .getElementById("toWhomAddressed")
+    .value.trim();
   const shortSubject = document.getElementById("shortSubject").value.trim();
   const fileNo = document.getElementById("fileNo").value.trim();
-  const serialNoOfLetter = document.getElementById("serialNoOfLetter").value.trim();
-  const collectionNoTitle = document.getElementById("collectionNoTitle").value.trim();
-  const fileNoInCollection = document.getElementById("fileNoInCollection").value.trim();
+  const serialNoOfLetter = document
+    .getElementById("serialNoOfLetter")
+    .value.trim();
+  const collectionNoTitle = document
+    .getElementById("collectionNoTitle")
+    .value.trim();
+  const fileNoInCollection = document
+    .getElementById("fileNoInCollection")
+    .value.trim();
   const replyNo = document.getElementById("replyNo").value.trim();
   const replyDate = document.getElementById("replyDate").value;
   const reminderNo = document.getElementById("reminderNo").value.trim();
@@ -319,17 +425,19 @@ function addReceive(event) {
   const stampP = document.getElementById("stampP").value;
   const remarks = document.getElementById("remarks").value.trim();
 
-  // Required fields validation
   if (!consecutiveNo || !date || !toWhomAddressed || !shortSubject) {
-    showNotification("Please fill all required fields.", "error");
+    showNotification(
+      "Please fill required fields (Consecutive No, Date, To Whom Addressed, Short Subject).",
+      "error"
+    );
     return;
   }
 
-  const newReceive = { 
-    id: generateId(), 
-    consecutiveNo, 
-    date, 
-    toWhomAddressed, 
+  const newReceive = {
+    id: generateId(),
+    consecutiveNo,
+    date,
+    toWhomAddressed,
     shortSubject,
     fileNo,
     serialNoOfLetter,
@@ -341,20 +449,25 @@ function addReceive(event) {
     reminderDate,
     stampRs,
     stampP,
-    remarks
+    remarks,
+    // keep legacy friendly fields
+    slNo: consecutiveNo,
+    subject: shortSubject,
+    action: "pending",
   };
-  
+
   receives.push(newReceive);
   saveToLocalStorage();
   updateStats();
 
-  // Go to last page if new record doesn't fit on current page
-  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  // go to last page
+  const dataToRender =
+    filteredReceives.length > 0 ? filteredReceives : receives;
   if (recordsPerPage > 0) {
     const newTotalPages = Math.ceil(dataToRender.length / recordsPerPage);
-    if (currentPage !== newTotalPages) {
-      currentPage = newTotalPages;
-    }
+    currentPage = newTotalPages;
+  } else {
+    currentPage = 1;
   }
 
   renderTable();
@@ -364,14 +477,6 @@ function addReceive(event) {
   showNotification("Receive added successfully!", "success");
 }
 
-// Update the openModal function to focus on consecutiveNo instead of slNo
-function openModal() {
-  receiveModal.style.display = "block";
-  document.getElementById("date").value = new Date().toISOString().split("T")[0];
-  document.getElementById("consecutiveNo").focus();
-  document.body.style.overflow = "hidden";
-}
-
 // Export CSV
 function exportToCSV() {
   if (receives.length === 0) {
@@ -379,15 +484,46 @@ function exportToCSV() {
     return;
   }
 
-  const headers = ["SL No", "Date", "Subject", "Action"];
-  const csvContent = [
-    headers.join(","),
-    ...receives.map((r) =>
-      [`"${r.slNo}"`, `"${r.date}"`, `"${r.subject}"`, `"${r.action}"`].join(
-        ","
-      )
-    ),
-  ].join("\n");
+  // Use columns consistent with the multi-column table
+  const headers = [
+    "Consecutive No",
+    "Date",
+    "To whom addressed",
+    "Short subject",
+    "File No & Serial",
+    "Collection (No & Title)",
+    "File No in Collection",
+    "Reply No",
+    "Reply Date",
+    "Reminder No",
+    "Reminder Date",
+    "Stamp Rs",
+    "Stamp P",
+    "Remarks",
+    "Action",
+  ];
+
+  const rows = receives.map((r) => [
+    r.consecutiveNo || "",
+    r.date || "",
+    r.toWhomAddressed || "",
+    r.shortSubject || "",
+    [r.fileNo, r.serialNoOfLetter].filter(Boolean).join(" / "),
+    r.collectionNoTitle || "",
+    r.fileNoInCollection || "",
+    r.replyNo || "",
+    r.replyDate || "",
+    r.reminderNo || "",
+    r.reminderDate || "",
+    r.stampRs || "",
+    r.stampP || "",
+    r.remarks || "",
+    r.action || "",
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -423,95 +559,141 @@ function exportToJSON() {
   showNotification("Data exported as JSON!", "success");
 }
 
-// Print receives (only visible/current page records) - Direct print
+// Print receives - same multi-row header and columns
 function printReceives() {
   const dataToPrint = getCurrentPageData();
-  const totalRecords =
-    filteredReceives.length > 0 ? filteredReceives : receives;
-
-  if (dataToPrint.length === 0) {
+  if (!dataToPrint || dataToPrint.length === 0) {
     showNotification("No data to print!", "error");
     return;
   }
 
   const printDate = new Date().toLocaleDateString();
-  const currentPageInfo =
-    recordsPerPage === 0
-      ? "Showing all records"
-      : `Page ${currentPage} of ${totalPages}`;
 
-  // Create a temporary iframe for printing
+  const printRows = dataToPrint
+    .map((r) => {
+      const consecutiveNo = r.consecutiveNo || "";
+      const date = formatDateForPrint(r.date);
+      const toWhom = r.toWhomAddressed || "";
+      const shortSubject = r.shortSubject || "";
+
+      const fileNo = r.fileNo || "";
+      const serial = r.serialNoOfLetter || "";
+      const fileAndSerial = [fileNo, serial].filter(Boolean).join(" / ");
+
+      const collection = r.collectionNoTitle || "";
+      const fileInCollection = r.fileNoInCollection || "";
+
+      const replyNo = r.replyNo || "";
+      const replyDate = r.replyDate ? formatDateForPrint(r.replyDate) : "";
+
+      const reminderNo = r.reminderNo || "";
+      const reminderDate = r.reminderDate
+        ? formatDateForPrint(r.reminderDate)
+        : "";
+
+      const stampRs = r.stampRs || "";
+      const stampP = r.stampP || "";
+      const remarks = r.remarks || "";
+
+      return `
+      <tr>
+        <td>${escapeHtml(consecutiveNo)}</td>
+        <td>${escapeHtml(date)}</td>
+        <td style="text-align:left;">${escapeHtml(toWhom)}</td>
+        <td style="text-align:left;">${escapeHtml(shortSubject)}</td>
+
+        <td style="text-align:left;">${escapeHtml(fileAndSerial)}</td>
+        <td style="text-align:left;">${escapeHtml(collection)}</td>
+        <td>${escapeHtml(fileInCollection)}</td>
+
+        <td style="text-align:left;">
+          ${replyNo ? `<div>${escapeHtml(replyNo)}</div>` : ""}
+          ${
+            replyDate
+              ? `<div style="font-size:0.9em;color:#555">${escapeHtml(
+                  replyDate
+                )}</div>`
+              : ""
+          }
+        </td>
+
+        <td>${escapeHtml(reminderNo)}</td>
+        <td>${escapeHtml(reminderDate)}</td>
+
+        <td>${escapeHtml(stampRs)}</td>
+        <td>${escapeHtml(stampP)}</td>
+
+        <td style="text-align:left;">${escapeHtml(remarks)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+
+  const printContent = `<!doctype html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Receive Copy Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; margin: 10px; }
+        .print-header { text-align:center; margin-bottom:10px; }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        th, td { border:1px solid #bbb; padding:8px; }
+        th { background:#f2f2f2; font-weight:700; text-align:center; }
+        td { text-align:center; }
+        td:first-child, th:first-child { width:8%; }
+        td:nth-child(2), th:nth-child(2) { width:9%; }
+        td:nth-child(3), th:nth-child(3) { width:18%; text-align:left; }
+        td:nth-child(4), th:nth-child(4) { width:20%; text-align:left; }
+        @page { margin: 1cm; size: auto; }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <h1>Receive Copy Report</h1>
+        <div>Printed: ${printDate}</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Consecutive No.</th>
+            <th rowspan="2">Date</th>
+            <th rowspan="2">To whom addressed</th>
+            <th rowspan="2">Short subject</th>
+            <th colspan="3">Where the draft is placed</th>
+            <th rowspan="2">No. and date of reply received</th>
+            <th colspan="2">Reminder</th>
+            <th colspan="2">Value of Stamp</th>
+            <th rowspan="2">Remarks</th>
+          </tr>
+          <tr>
+            <th>File No. &amp; Serial No. of letter of file</th>
+            <th>No. &amp; title of the collection</th>
+            <th>No. of file within the collection</th>
+            <th>No.</th>
+            <th>Date</th>
+            <th>Rs.</th>
+            <th>P.</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${printRows}
+        </tbody>
+      </table>
+    </body>
+  </html>`;
+
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.left = "-9999px";
   document.body.appendChild(iframe);
-
-  const printContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Receive Copy Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 10px; color: #333; }
-          .print-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-          .print-header h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
-          .print-info { text-align: center; margin-bottom: 10px; font-style: italic; color: #666; }
-          .print-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          .print-table th, .print-table td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
-          .print-table th { background-color: #f2f2f2; font-weight: bold; color: #333; }
-          .print-footer { text-align: center; margin-top: 30px; font-size: 14px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
-          .print-status { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
-          .print-status-pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-          .print-status-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-          @page { margin: 1cm; }
-        </style>
-      </head>
-      <body>
-        <div class="print-header">
-          <h1>Receive Copy Report</h1>
-          <p>Generated on: ${printDate}</p>
-        </div>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th>SL No</th>
-              <th>Date</th>
-              <th>Subject</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${dataToPrint
-              .map(
-                (r) => `
-              <tr>
-                <td>${r.slNo}</td>
-                <td>${formatDateForPrint(r.date)}</td>
-                <td>${r.subject}</td>
-                <td><span class="print-status print-status-${r.action}">${
-                  r.action.charAt(0).toUpperCase() + r.action.slice(1)
-                }</span></td>
-              </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-        </table>
-      </body>
-    </html>
-  `;
-
+  iframe.contentDocument.open();
   iframe.contentDocument.write(printContent);
   iframe.contentDocument.close();
-
   iframe.contentWindow.focus();
   iframe.contentWindow.print();
-
-  // Clean up after printing
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-  }, 1000);
+  setTimeout(() => document.body.removeChild(iframe), 1000);
 
   showNotification(`Printing ${dataToPrint.length} visible records!`, "info");
 }
@@ -557,61 +739,48 @@ importFile.addEventListener("change", () => {
       showNotification("Imported JSON successfully!", "success");
     } catch (err) {
       console.error(err);
-      showNotification("Invalid JSON file!", "error");
+      showNotification("Failed to import JSON file", "error");
     }
   };
   reader.readAsText(file);
 });
 
-// Event listeners for modal
+// Event listeners
 createReceiveBtn.addEventListener("click", openModal);
-createFirstReceive.addEventListener("click", openModal);
+createFirstReceive && createFirstReceive.addEventListener("click", openModal);
 closeModal.addEventListener("click", closeModalFunc);
 cancelBtn.addEventListener("click", closeModalFunc);
-
-// Close modal when clicking outside
-window.addEventListener("click", (event) => {
-  if (event.target === receiveModal) {
-    closeModalFunc();
-  }
-});
-
-// Close modal with Escape key
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && receiveModal.style.display === "block") {
-    closeModalFunc();
-  }
-});
-
-// Search functionality
-searchInput.addEventListener("input", (e) => {
-  filterReceives(e.target.value);
-});
-
-// Pagination event listeners
-firstPageBtn.addEventListener("click", () => goToPage(1));
-prevPageBtn.addEventListener("click", () => goToPage(currentPage - 1));
-nextPageBtn.addEventListener("click", () => goToPage(currentPage + 1));
-lastPageBtn.addEventListener("click", () => goToPage(totalPages));
-
-// Records per page change
-recordsPerPageSelect.addEventListener("change", (e) => {
-  recordsPerPage = parseInt(e.target.value);
-  currentPage = 1; // Reset to first page when changing records per page
-  renderTable();
-  updatePagination();
-});
-
-// Form submission
 receiveForm.addEventListener("submit", addReceive);
 
-// Export/Import event listeners
 exportCsvBtn.addEventListener("click", exportToCSV);
 exportJsonBtn.addEventListener("click", exportToJSON);
 printBtn.addEventListener("click", printReceives);
 clearAllBtn.addEventListener("click", clearAllData);
 
-// Initialize on load
+firstPageBtn.addEventListener("click", () => goToPage(1));
+prevPageBtn.addEventListener("click", () =>
+  goToPage(Math.max(1, currentPage - 1))
+);
+nextPageBtn.addEventListener("click", () =>
+  goToPage(Math.min(totalPages, currentPage + 1))
+);
+lastPageBtn.addEventListener("click", () => goToPage(totalPages));
+
+recordsPerPageSelect.addEventListener("change", (e) => {
+  recordsPerPage = parseInt(e.target.value, 10);
+  currentPage = 1;
+  renderTable();
+  updatePagination();
+});
+
+searchInput.addEventListener("input", (e) => {
+  filterReceives(e.target.value.trim());
+});
+
+// Initialize
 document.addEventListener("DOMContentLoaded", () => {
   loadReceivesFromJSON();
+  // ensure stateful defaults
+  recordsPerPage = parseInt(recordsPerPageSelect.value, 10) || 20;
+  updatePagination();
 });

@@ -1,702 +1,212 @@
 [
   {
-    "id": "id1",
-    "slNo": "RC-001",
-    "date": "2025-02-02",
-    "subject": "Invoice Document #1",
+    "id": "demo-001",
+    "consecutiveNo": "RC-101",
+    "slNo": "RC-101",
+    "date": "2025-01-10",
+    "toWhomAddressed": "Accounts Dept., ACME Pvt. Ltd.",
+    "shortSubject": "Invoice for Office Supplies",
+    "subject": "Invoice for Office Supplies",
+    "fileNo": "F-2025/AC/01",
+    "serialNoOfLetter": "S-1001",
+    "collectionNoTitle": "Accounts Collection - 2025",
+    "fileNoInCollection": "001",
+    "replyNo": "R-501",
+    "replyDate": "2025-01-15",
+    "reminderNo": "REM-01",
+    "reminderDate": "2025-02-01",
+    "stampRs": "25",
+    "stampP": "00",
+    "remarks": "Urgent processing requested.",
     "action": "pending"
   },
   {
-    "id": "id2",
-    "slNo": "RC-002",
-    "date": "2025-03-03",
-    "subject": "Purchase Order #2",
+    "id": "demo-002",
+    "consecutiveNo": "RC-102",
+    "slNo": "RC-102",
+    "date": "2025-02-05",
+    "toWhomAddressed": "HR Manager, Branch Office",
+    "shortSubject": "Leave Application - Employee ID 342",
+    "subject": "Leave Application - Employee ID 342",
+    "fileNo": "HR-2025/LV/07",
+    "serialNoOfLetter": "S-1024",
+    "collectionNoTitle": "HR Correspondence",
+    "fileNoInCollection": "007",
+    "replyNo": "",
+    "replyDate": "",
+    "reminderNo": "",
+    "reminderDate": "",
+    "stampRs": "0",
+    "stampP": "00",
+    "remarks": "Medical leave attached.",
     "action": "success"
   },
   {
-    "id": "id3",
-    "slNo": "RC-003",
-    "date": "2025-04-04",
-    "subject": "Delivery Receipt #3",
+    "id": "demo-003",
+    "consecutiveNo": "RC-103",
+    "slNo": "RC-103",
+    "date": "2025-03-12",
+    "toWhomAddressed": "Procurement Section",
+    "shortSubject": "Quotation - Printer Toners",
+    "subject": "Quotation - Printer Toners",
+    "fileNo": "PR-2025/QUO/03",
+    "serialNoOfLetter": "S-1100",
+    "collectionNoTitle": "Procurement Records",
+    "fileNoInCollection": "013",
+    "replyNo": "R-512",
+    "replyDate": "2025-03-18",
+    "reminderNo": "",
+    "reminderDate": "",
+    "stampRs": "10",
+    "stampP": "50",
+    "remarks": "",
     "action": "pending"
   },
   {
-    "id": "id4",
-    "slNo": "RC-004",
-    "date": "2025-05-05",
-    "subject": "HR Notice #4",
-    "action": "success"
-  },
-  {
-    "id": "id5",
-    "slNo": "RC-005",
-    "date": "2025-06-06",
-    "subject": "Official Letter #5",
-    "action": "pending"
-  },
-  {
-    "id": "id6",
-    "slNo": "RC-006",
-    "date": "2025-07-07",
-    "subject": "Approval Request #6",
-    "action": "success"
-  },
-  {
-    "id": "id7",
-    "slNo": "RC-007",
-    "date": "2025-08-08",
-    "subject": "Complaint Copy #7",
-    "action": "pending"
-  },
-  {
-    "id": "id8",
-    "slNo": "RC-008",
-    "date": "2025-09-09",
-    "subject": "Stock Entry Report #8",
-    "action": "success"
-  },
-  {
-    "id": "id9",
-    "slNo": "RC-009",
-    "date": "2025-10-10",
-    "subject": "Audit File #9",
-    "action": "pending"
-  },
-  {
-    "id": "id10",
-    "slNo": "RC-010",
-    "date": "2025-11-11",
-    "subject": "Service Request #10",
-    "action": "success"
-  },
-  {
-    "id": "id11",
-    "slNo": "RC-011",
-    "date": "2025-12-12",
-    "subject": "Maintenance Log #11",
-    "action": "pending"
-  },
-  {
-    "id": "id12",
-    "slNo": "RC-012",
-    "date": "2025-01-13",
-    "subject": "Transport Challan #12",
-    "action": "success"
-  },
-  {
-    "id": "id13",
-    "slNo": "RC-013",
-    "date": "2025-02-14",
-    "subject": "Financial Statement #13",
-    "action": "pending"
-  },
-  {
-    "id": "id14",
-    "slNo": "RC-014",
-    "date": "2025-03-15",
-    "subject": "Vendor Quotation #14",
-    "action": "success"
-  },
-  {
-    "id": "id15",
-    "slNo": "RC-015",
-    "date": "2025-04-16",
-    "subject": "Office Memo #15",
-    "action": "pending"
-  },
-  {
-    "id": "id16",
-    "slNo": "RC-016",
-    "date": "2025-05-17",
-    "subject": "Invoice Document #16",
-    "action": "success"
-  },
-  {
-    "id": "id17",
-    "slNo": "RC-017",
-    "date": "2025-06-18",
-    "subject": "Purchase Order #17",
-    "action": "pending"
-  },
-  {
-    "id": "id18",
-    "slNo": "RC-018",
-    "date": "2025-07-19",
-    "subject": "Delivery Receipt #18",
-    "action": "success"
-  },
-  {
-    "id": "id19",
-    "slNo": "RC-019",
-    "date": "2025-08-20",
-    "subject": "HR Notice #19",
-    "action": "pending"
-  },
-  {
-    "id": "id20",
-    "slNo": "RC-020",
-    "date": "2025-09-21",
-    "subject": "Official Letter #20",
-    "action": "success"
-  },
-  {
-    "id": "id21",
-    "slNo": "RC-021",
-    "date": "2025-10-22",
-    "subject": "Approval Request #21",
-    "action": "pending"
-  },
-  {
-    "id": "id22",
-    "slNo": "RC-022",
-    "date": "2025-11-23",
-    "subject": "Complaint Copy #22",
-    "action": "success"
-  },
-  {
-    "id": "id23",
-    "slNo": "RC-023",
-    "date": "2025-12-24",
-    "subject": "Stock Entry Report #23",
-    "action": "pending"
-  },
-  {
-    "id": "id24",
-    "slNo": "RC-024",
-    "date": "2025-01-25",
-    "subject": "Audit File #24",
-    "action": "success"
-  },
-  {
-    "id": "id25",
-    "slNo": "RC-025",
-    "date": "2025-02-26",
-    "subject": "Service Request #25",
-    "action": "pending"
-  },
-  {
-    "id": "id26",
-    "slNo": "RC-026",
-    "date": "2025-03-27",
-    "subject": "Maintenance Log #26",
-    "action": "success"
-  },
-  {
-    "id": "id27",
-    "slNo": "RC-027",
-    "date": "2025-04-28",
-    "subject": "Transport Challan #27",
-    "action": "pending"
-  },
-  {
-    "id": "id28",
-    "slNo": "RC-028",
-    "date": "2025-05-01",
-    "subject": "Financial Statement #28",
-    "action": "success"
-  },
-  {
-    "id": "id29",
-    "slNo": "RC-029",
-    "date": "2025-06-02",
-    "subject": "Vendor Quotation #29",
-    "action": "pending"
-  },
-  {
-    "id": "id30",
-    "slNo": "RC-030",
-    "date": "2025-07-03",
-    "subject": "Office Memo #30",
-    "action": "success"
-  },
-  {
-    "id": "id31",
-    "slNo": "RC-031",
-    "date": "2025-08-04",
-    "subject": "Invoice Document #31",
-    "action": "pending"
-  },
-  {
-    "id": "id32",
-    "slNo": "RC-032",
-    "date": "2025-09-05",
-    "subject": "Purchase Order #32",
-    "action": "success"
-  },
-  {
-    "id": "id33",
-    "slNo": "RC-033",
-    "date": "2025-10-06",
-    "subject": "Delivery Receipt #33",
-    "action": "pending"
-  },
-  {
-    "id": "id34",
-    "slNo": "RC-034",
-    "date": "2025-11-07",
-    "subject": "HR Notice #34",
-    "action": "success"
-  },
-  {
-    "id": "id35",
-    "slNo": "RC-035",
-    "date": "2025-12-08",
-    "subject": "Official Letter #35",
-    "action": "pending"
-  },
-  {
-    "id": "id36",
-    "slNo": "RC-036",
-    "date": "2025-01-09",
-    "subject": "Approval Request #36",
-    "action": "success"
-  },
-  {
-    "id": "id37",
-    "slNo": "RC-037",
-    "date": "2025-02-10",
-    "subject": "Complaint Copy #37",
-    "action": "pending"
-  },
-  {
-    "id": "id38",
-    "slNo": "RC-038",
-    "date": "2025-03-11",
-    "subject": "Stock Entry Report #38",
-    "action": "success"
-  },
-  {
-    "id": "id39",
-    "slNo": "RC-039",
-    "date": "2025-04-12",
-    "subject": "Audit File #39",
-    "action": "pending"
-  },
-  {
-    "id": "id40",
-    "slNo": "RC-040",
-    "date": "2025-05-13",
-    "subject": "Service Request #40",
-    "action": "success"
-  },
-  {
-    "id": "id41",
-    "slNo": "RC-041",
-    "date": "2025-06-14",
-    "subject": "Maintenance Log #41",
-    "action": "pending"
-  },
-  {
-    "id": "id42",
-    "slNo": "RC-042",
-    "date": "2025-07-15",
-    "subject": "Transport Challan #42",
-    "action": "success"
-  },
-  {
-    "id": "id43",
-    "slNo": "RC-043",
-    "date": "2025-08-16",
-    "subject": "Financial Statement #43",
-    "action": "pending"
-  },
-  {
-    "id": "id44",
-    "slNo": "RC-044",
-    "date": "2025-09-17",
-    "subject": "Vendor Quotation #44",
-    "action": "success"
-  },
-  {
-    "id": "id45",
-    "slNo": "RC-045",
-    "date": "2025-10-18",
-    "subject": "Office Memo #45",
-    "action": "pending"
-  },
-  {
-    "id": "id46",
-    "slNo": "RC-046",
-    "date": "2025-11-19",
-    "subject": "Invoice Document #46",
-    "action": "success"
-  },
-  {
-    "id": "id47",
-    "slNo": "RC-047",
-    "date": "2025-12-20",
-    "subject": "Purchase Order #47",
-    "action": "pending"
-  },
-  {
-    "id": "id48",
-    "slNo": "RC-048",
-    "date": "2025-01-21",
-    "subject": "Delivery Receipt #48",
-    "action": "success"
-  },
-  {
-    "id": "id49",
-    "slNo": "RC-049",
-    "date": "2025-02-22",
-    "subject": "HR Notice #49",
-    "action": "pending"
-  },
-  {
-    "id": "id50",
-    "slNo": "RC-050",
-    "date": "2025-03-23",
-    "subject": "Official Letter #50",
-    "action": "success"
-  },
-  {
-    "id": "id51",
-    "slNo": "RC-051",
-    "date": "2025-04-24",
-    "subject": "Approval Request #51",
-    "action": "pending"
-  },
-  {
-    "id": "id52",
-    "slNo": "RC-052",
-    "date": "2025-05-25",
-    "subject": "Complaint Copy #52",
-    "action": "success"
-  },
-  {
-    "id": "id53",
-    "slNo": "RC-053",
-    "date": "2025-06-26",
-    "subject": "Stock Entry Report #53",
-    "action": "pending"
-  },
-  {
-    "id": "id54",
-    "slNo": "RC-054",
-    "date": "2025-07-27",
-    "subject": "Audit File #54",
-    "action": "success"
-  },
-  {
-    "id": "id55",
-    "slNo": "RC-055",
-    "date": "2025-08-28",
-    "subject": "Service Request #55",
-    "action": "pending"
-  },
-  {
-    "id": "id56",
-    "slNo": "RC-056",
-    "date": "2025-09-01",
-    "subject": "Maintenance Log #56",
-    "action": "success"
-  },
-  {
-    "id": "id57",
-    "slNo": "RC-057",
-    "date": "2025-10-02",
-    "subject": "Transport Challan #57",
-    "action": "pending"
-  },
-  {
-    "id": "id58",
-    "slNo": "RC-058",
-    "date": "2025-11-03",
-    "subject": "Financial Statement #58",
-    "action": "success"
-  },
-  {
-    "id": "id59",
-    "slNo": "RC-059",
-    "date": "2025-12-04",
-    "subject": "Vendor Quotation #59",
-    "action": "pending"
-  },
-  {
-    "id": "id60",
-    "slNo": "RC-060",
-    "date": "2025-01-05",
-    "subject": "Office Memo #60",
-    "action": "success"
-  },
-  {
-    "id": "id61",
-    "slNo": "RC-061",
-    "date": "2025-02-06",
-    "subject": "Invoice Document #61",
-    "action": "pending"
-  },
-  {
-    "id": "id62",
-    "slNo": "RC-062",
-    "date": "2025-03-07",
-    "subject": "Purchase Order #62",
-    "action": "success"
-  },
-  {
-    "id": "id63",
-    "slNo": "RC-063",
-    "date": "2025-04-08",
-    "subject": "Delivery Receipt #63",
-    "action": "pending"
-  },
-  {
-    "id": "id64",
-    "slNo": "RC-064",
-    "date": "2025-05-09",
-    "subject": "HR Notice #64",
-    "action": "success"
-  },
-  {
-    "id": "id65",
-    "slNo": "RC-065",
-    "date": "2025-06-10",
-    "subject": "Official Letter #65",
-    "action": "pending"
-  },
-  {
-    "id": "id66",
-    "slNo": "RC-066",
-    "date": "2025-07-11",
-    "subject": "Approval Request #66",
-    "action": "success"
-  },
-  {
-    "id": "id67",
-    "slNo": "RC-067",
-    "date": "2025-08-12",
-    "subject": "Complaint Copy #67",
-    "action": "pending"
-  },
-  {
-    "id": "id68",
-    "slNo": "RC-068",
-    "date": "2025-09-13",
-    "subject": "Stock Entry Report #68",
-    "action": "success"
-  },
-  {
-    "id": "id69",
-    "slNo": "RC-069",
-    "date": "2025-10-14",
-    "subject": "Audit File #69",
-    "action": "pending"
-  },
-  {
-    "id": "id70",
-    "slNo": "RC-070",
-    "date": "2025-11-15",
-    "subject": "Service Request #70",
-    "action": "success"
-  },
-  {
-    "id": "id71",
-    "slNo": "RC-071",
-    "date": "2025-12-16",
-    "subject": "Maintenance Log #71",
-    "action": "pending"
-  },
-  {
-    "id": "id72",
-    "slNo": "RC-072",
-    "date": "2025-01-17",
-    "subject": "Transport Challan #72",
-    "action": "success"
-  },
-  {
-    "id": "id73",
-    "slNo": "RC-073",
-    "date": "2025-02-18",
-    "subject": "Financial Statement #73",
-    "action": "pending"
-  },
-  {
-    "id": "id74",
-    "slNo": "RC-074",
-    "date": "2025-03-19",
-    "subject": "Vendor Quotation #74",
-    "action": "success"
-  },
-  {
-    "id": "id75",
-    "slNo": "RC-075",
+    "id": "demo-004",
+    "consecutiveNo": "RC-104",
+    "slNo": "RC-104",
     "date": "2025-04-20",
-    "subject": "Office Memo #75",
-    "action": "pending"
-  },
-  {
-    "id": "id76",
-    "slNo": "RC-076",
-    "date": "2025-05-21",
-    "subject": "Invoice Document #76",
+    "toWhomAddressed": "Stationery Supplier - M/S PaperWorks",
+    "shortSubject": "Purchase Order - Notebooks",
+    "subject": "Purchase Order - Notebooks",
+    "fileNo": "PO-2025/PN/04",
+    "serialNoOfLetter": "S-1205",
+    "collectionNoTitle": "Purchase Orders 2025",
+    "fileNoInCollection": "021",
+    "replyNo": "R-550",
+    "replyDate": "2025-04-25",
+    "reminderNo": "REM-02",
+    "reminderDate": "2025-05-10",
+    "stampRs": "5",
+    "stampP": "00",
+    "remarks": "Deliver to central store.",
     "action": "success"
   },
   {
-    "id": "id77",
-    "slNo": "RC-077",
-    "date": "2025-06-22",
-    "subject": "Purchase Order #77",
+    "id": "demo-005",
+    "consecutiveNo": "RC-105",
+    "slNo": "RC-105",
+    "date": "2025-05-08",
+    "toWhomAddressed": "IT Department",
+    "shortSubject": "Request for Software License Renewal",
+    "subject": "Request for Software License Renewal",
+    "fileNo": "IT-2025/LIC/02",
+    "serialNoOfLetter": "S-1302",
+    "collectionNoTitle": "IT Requests",
+    "fileNoInCollection": "005",
+    "replyNo": "",
+    "replyDate": "",
+    "reminderNo": "REM-03",
+    "reminderDate": "2025-06-01",
+    "stampRs": "0",
+    "stampP": "00",
+    "remarks": "License expires end of June.",
     "action": "pending"
   },
   {
-    "id": "id78",
-    "slNo": "RC-078",
-    "date": "2025-07-23",
-    "subject": "Delivery Receipt #78",
+    "id": "demo-006",
+    "consecutiveNo": "RC-106",
+    "slNo": "RC-106",
+    "date": "2025-06-30",
+    "toWhomAddressed": "Maintenance Section",
+    "shortSubject": "Complaint - AC not working (Floor 3)",
+    "subject": "Complaint - AC not working (Floor 3)",
+    "fileNo": "MN-2025/CM/09",
+    "serialNoOfLetter": "S-1409",
+    "collectionNoTitle": "Maintenance Logs",
+    "fileNoInCollection": "009",
+    "replyNo": "R-601",
+    "replyDate": "2025-07-02",
+    "reminderNo": "",
+    "reminderDate": "",
+    "stampRs": "2",
+    "stampP": "50",
+    "remarks": "Technician visit scheduled.",
     "action": "success"
   },
   {
-    "id": "id79",
-    "slNo": "RC-079",
-    "date": "2025-08-24",
-    "subject": "HR Notice #79",
+    "id": "demo-007",
+    "consecutiveNo": "RC-107",
+    "slNo": "RC-107",
+    "date": "2025-07-15",
+    "toWhomAddressed": "Legal Cell",
+    "shortSubject": "Notice - Contract breach by Vendor X",
+    "subject": "Notice - Contract breach by Vendor X",
+    "fileNo": "LG-2025/NT/01",
+    "serialNoOfLetter": "S-1501",
+    "collectionNoTitle": "Legal Notices",
+    "fileNoInCollection": "002",
+    "replyNo": "R-630",
+    "replyDate": "2025-07-20",
+    "reminderNo": "REM-04",
+    "reminderDate": "2025-08-05",
+    "stampRs": "50",
+    "stampP": "00",
+    "remarks": "Forwarded to external counsel.",
     "action": "pending"
   },
   {
-    "id": "id80",
-    "slNo": "RC-080",
-    "date": "2025-09-25",
-    "subject": "Official Letter #80",
+    "id": "demo-008",
+    "consecutiveNo": "RC-108",
+    "slNo": "RC-108",
+    "date": "2025-08-02",
+    "toWhomAddressed": "Transport Dept.",
+    "shortSubject": "Transport Challan - Route Change Request",
+    "subject": "Transport Challan - Route Change Request",
+    "fileNo": "TR-2025/CH/11",
+    "serialNoOfLetter": "S-1607",
+    "collectionNoTitle": "Transport Records",
+    "fileNoInCollection": "011",
+    "replyNo": "R-700",
+    "replyDate": "2025-08-10",
+    "reminderNo": "",
+    "reminderDate": "",
+    "stampRs": "1",
+    "stampP": "00",
+    "remarks": "Approved with conditions.",
     "action": "success"
   },
   {
-    "id": "id81",
-    "slNo": "RC-081",
-    "date": "2025-10-26",
-    "subject": "Approval Request #81",
+    "id": "demo-009",
+    "consecutiveNo": "RC-109",
+    "slNo": "RC-109",
+    "date": "2025-09-18",
+    "toWhomAddressed": "Procurement - Stationery",
+    "shortSubject": "Complaint - Damaged delivery batch #DL-334",
+    "subject": "Complaint - Damaged delivery batch #DL-334",
+    "fileNo": "PR-2025/CM/18",
+    "serialNoOfLetter": "S-1704",
+    "collectionNoTitle": "Procurement Complaints",
+    "fileNoInCollection": "018",
+    "replyNo": "R-750",
+    "replyDate": "2025-09-22",
+    "reminderNo": "REM-05",
+    "reminderDate": "2025-10-01",
+    "stampRs": "12",
+    "stampP": "75",
+    "remarks": "Return initiated to vendor.",
     "action": "pending"
   },
   {
-    "id": "id82",
-    "slNo": "RC-082",
-    "date": "2025-11-27",
-    "subject": "Complaint Copy #82",
-    "action": "success"
-  },
-  {
-    "id": "id83",
-    "slNo": "RC-083",
-    "date": "2025-12-28",
-    "subject": "Stock Entry Report #83",
-    "action": "pending"
-  },
-  {
-    "id": "id84",
-    "slNo": "RC-084",
-    "date": "2025-01-01",
-    "subject": "Audit File #84",
-    "action": "success"
-  },
-  {
-    "id": "id85",
-    "slNo": "RC-085",
-    "date": "2025-02-02",
-    "subject": "Service Request #85",
-    "action": "pending"
-  },
-  {
-    "id": "id86",
-    "slNo": "RC-086",
-    "date": "2025-03-03",
-    "subject": "Maintenance Log #86",
-    "action": "success"
-  },
-  {
-    "id": "id87",
-    "slNo": "RC-087",
-    "date": "2025-04-04",
-    "subject": "Transport Challan #87",
-    "action": "pending"
-  },
-  {
-    "id": "id88",
-    "slNo": "RC-088",
-    "date": "2025-05-05",
-    "subject": "Financial Statement #88",
-    "action": "success"
-  },
-  {
-    "id": "id89",
-    "slNo": "RC-089",
-    "date": "2025-06-06",
-    "subject": "Vendor Quotation #89",
-    "action": "pending"
-  },
-  {
-    "id": "id90",
-    "slNo": "RC-090",
-    "date": "2025-07-07",
-    "subject": "Office Memo #90",
-    "action": "success"
-  },
-  {
-    "id": "id91",
-    "slNo": "RC-091",
-    "date": "2025-08-08",
-    "subject": "Invoice Document #91",
-    "action": "pending"
-  },
-  {
-    "id": "id92",
-    "slNo": "RC-092",
-    "date": "2025-09-09",
-    "subject": "Purchase Order #92",
-    "action": "success"
-  },
-  {
-    "id": "id93",
-    "slNo": "RC-093",
-    "date": "2025-10-10",
-    "subject": "Delivery Receipt #93",
-    "action": "pending"
-  },
-  {
-    "id": "id94",
-    "slNo": "RC-094",
-    "date": "2025-11-11",
-    "subject": "HR Notice #94",
-    "action": "success"
-  },
-  {
-    "id": "id95",
-    "slNo": "RC-095",
-    "date": "2025-12-12",
-    "subject": "Official Letter #95",
-    "action": "pending"
-  },
-  {
-    "id": "id96",
-    "slNo": "RC-096",
-    "date": "2025-01-13",
-    "subject": "Approval Request #96",
-    "action": "success"
-  },
-  {
-    "id": "id97",
-    "slNo": "RC-097",
-    "date": "2025-02-14",
-    "subject": "Complaint Copy #97",
-    "action": "pending"
-  },
-  {
-    "id": "id98",
-    "slNo": "RC-098",
-    "date": "2025-03-15",
-    "subject": "Stock Entry Report #98",
-    "action": "success"
-  },
-  {
-    "id": "id99",
-    "slNo": "RC-099",
-    "date": "2025-04-16",
-    "subject": "Audit File #99",
-    "action": "pending"
-  },
-  {
-    "id": "id100",
-    "slNo": "RC-100",
-    "date": "2025-05-17",
-    "subject": "Service Request #100",
+    "id": "demo-010",
+    "consecutiveNo": "RC-110",
+    "slNo": "RC-110",
+    "date": "2025-10-25",
+    "toWhomAddressed": "Accounts Section",
+    "shortSubject": "Service Request - Reimbursement Claim #789",
+    "subject": "Service Request - Reimbursement Claim #789",
+    "fileNo": "AC-2025/CL/22",
+    "serialNoOfLetter": "S-1802",
+    "collectionNoTitle": "Claims 2025",
+    "fileNoInCollection": "022",
+    "replyNo": "",
+    "replyDate": "",
+    "reminderNo": "",
+    "reminderDate": "",
+    "stampRs": "0",
+    "stampP": "00",
+    "remarks": "Receipts attached.",
     "action": "success"
   }
 ]
