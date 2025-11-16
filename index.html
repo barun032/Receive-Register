@@ -17,7 +17,9 @@
         <div class="header-content">
           <div class="header-text">
             <h1><i class="fas fa-copy"></i> Receive Copy System</h1>
-            <p class="subtitle">Track and manage all your receive copies in one place</p>
+            <p class="subtitle">
+              Track and manage all your receive copies in one place
+            </p>
           </div>
           <button id="createReceiveBtn" class="btn btn-create">
             <i class="fas fa-plus-circle"></i>
@@ -79,7 +81,12 @@
               <i class="fas fa-file-import"></i>
               Import JSON
             </button>
-            <input type="file" id="importJsonFile" accept=".json" style="display:none" />
+            <input
+              type="file"
+              id="importJsonFile"
+              accept=".json"
+              style="display: none"
+            />
             <button id="clearAll" class="btn-action btn-danger">
               <i class="fas fa-trash"></i>
               Clear All
@@ -94,7 +101,34 @@
             <div class="table-controls">
               <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search receives...">
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search in consecutive no, subject and recipient..."
+                />
+              </div>
+
+              <!-- Date Range Filter -->
+              <div class="date-range-filter">
+                <div class="date-input-group">
+                  <label for="dateFrom"
+                    ><i class="fas fa-calendar"></i> From:</label
+                  >
+                  <input type="date" id="dateFrom" />
+                </div>
+                <div class="date-input-group">
+                  <label for="dateTo"
+                    ><i class="fas fa-calendar"></i> To:</label
+                  >
+                  <input type="date" id="dateTo" />
+                </div>
+                <button
+                  id="clearDateFilter"
+                  class="btn btn-secondary"
+                  style="padding: 8px 12px"
+                >
+                  <i class="fas fa-times"></i> Clear
+                </button>
               </div>
             </div>
           </div>
@@ -131,7 +165,7 @@
               <tbody id="tableBody"></tbody>
             </table>
 
-            <div id="emptyState" class="empty-state" style="display:none;">
+            <div id="emptyState" class="empty-state" style="display: none">
               <div class="empty-icon">
                 <i class="fas fa-inbox"></i>
               </div>
@@ -144,7 +178,11 @@
             </div>
 
             <!-- Pagination Controls -->
-            <div class="pagination-container" id="paginationContainer" style="display:none;">
+            <div
+              class="pagination-container"
+              id="paginationContainer"
+              style="display: none"
+            >
               <div class="pagination-controls">
                 <div class="pagination-info">
                   <span id="paginationInfo">Showing 0-0 of 0 records</span>
@@ -188,7 +226,10 @@
       </main>
 
       <footer class="main-footer">
-        <p><i class="fas fa-database"></i> Receive Copy System &copy; 2024 | All data is stored locally in your browser</p>
+        <p>
+          <i class="fas fa-database"></i> Receive Copy System &copy; 2024 | All
+          data is stored locally in your browser
+        </p>
       </footer>
     </div>
 
@@ -208,8 +249,15 @@
         <form id="receiveForm" autocomplete="off">
           <div class="form-grid">
             <div class="form-group">
-              <label for="consecutiveNo"><i class="fas fa-hashtag"></i> Consecutive No.</label>
-              <input type="text" id="consecutiveNo" placeholder="Enter consecutive number" required />
+              <label for="consecutiveNo"
+                ><i class="fas fa-hashtag"></i> Consecutive No.</label
+              >
+              <input
+                type="text"
+                id="consecutiveNo"
+                placeholder="Enter consecutive number"
+                required
+              />
             </div>
 
             <div class="form-group">
@@ -218,13 +266,27 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="toWhomAddressed"><i class="fas fa-user"></i> To Whom Addressed</label>
-              <input type="text" id="toWhomAddressed" placeholder="Enter recipient details" required />
+              <label for="toWhomAddressed"
+                ><i class="fas fa-user"></i> To Whom Addressed</label
+              >
+              <input
+                type="text"
+                id="toWhomAddressed"
+                placeholder="Enter recipient details"
+                required
+              />
             </div>
 
             <div class="form-group full-width">
-              <label for="shortSubject"><i class="fas fa-align-left"></i> Short Subject</label>
-              <input type="text" id="shortSubject" placeholder="Enter short subject description" required />
+              <label for="shortSubject"
+                ><i class="fas fa-align-left"></i> Short Subject</label
+              >
+              <input
+                type="text"
+                id="shortSubject"
+                placeholder="Enter short subject description"
+                required
+              />
             </div>
 
             <!-- Where the draft is placed -->
@@ -238,28 +300,53 @@
             </div>
 
             <div class="form-group">
-              <label for="serialNoOfLetter"><i class="fas fa-list-ol"></i> Serial No. of letter</label>
-              <input type="text" id="serialNoOfLetter" placeholder="Serial number" />
+              <label for="serialNoOfLetter"
+                ><i class="fas fa-list-ol"></i> Serial No. of letter</label
+              >
+              <input
+                type="text"
+                id="serialNoOfLetter"
+                placeholder="Serial number"
+              />
             </div>
 
             <div class="form-group">
-              <label for="collectionNoTitle"><i class="fas fa-archive"></i> No. and title of collection</label>
-              <input type="text" id="collectionNoTitle" placeholder="Collection details" />
+              <label for="collectionNoTitle"
+                ><i class="fas fa-archive"></i> No. and title of
+                collection</label
+              >
+              <input
+                type="text"
+                id="collectionNoTitle"
+                placeholder="Collection details"
+              />
             </div>
 
             <div class="form-group">
-              <label for="fileNoInCollection"><i class="fas fa-folder-open"></i> No. of file within collection</label>
-              <input type="text" id="fileNoInCollection" placeholder="File number in collection" />
+              <label for="fileNoInCollection"
+                ><i class="fas fa-folder-open"></i> No. of file within
+                collection</label
+              >
+              <input
+                type="text"
+                id="fileNoInCollection"
+                placeholder="File number in collection"
+              />
             </div>
 
             <!-- Reply Information -->
             <div class="form-group">
-              <label for="replyNo"><i class="fas fa-reply"></i> No. of reply received</label>
+              <label for="replyNo"
+                ><i class="fas fa-reply"></i> No. of reply received</label
+              >
               <input type="text" id="replyNo" placeholder="Reply number" />
             </div>
 
             <div class="form-group">
-              <label for="replyDate"><i class="fas fa-calendar-check"></i> Date of reply received</label>
+              <label for="replyDate"
+                ><i class="fas fa-calendar-check"></i> Date of reply
+                received</label
+              >
               <input type="date" id="replyDate" />
             </div>
 
@@ -270,11 +357,17 @@
 
             <div class="form-group">
               <label for="reminderNo"><i class="fas fa-hashtag"></i> No.</label>
-              <input type="text" id="reminderNo" placeholder="Reminder number" />
+              <input
+                type="text"
+                id="reminderNo"
+                placeholder="Reminder number"
+              />
             </div>
 
             <div class="form-group">
-              <label for="reminderDate"><i class="fas fa-calendar-alt"></i> Date</label>
+              <label for="reminderDate"
+                ><i class="fas fa-calendar-alt"></i> Date</label
+              >
               <input type="date" id="reminderDate" />
             </div>
 
@@ -285,31 +378,58 @@
 
             <div class="form-group">
               <label for="stampRs"><i class="fas fa-rupee-sign"></i> Rs.</label>
-              <input type="number" id="stampRs" placeholder="0.00" step="0.01" min="0" />
+              <input
+                type="number"
+                id="stampRs"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
             </div>
 
             <div class="form-group">
               <label for="stampP"><i class="fas fa-coins"></i> P.</label>
-              <input type="number" id="stampP" placeholder="00" step="1" min="0" max="99" />
+              <input
+                type="number"
+                id="stampP"
+                placeholder="00"
+                step="1"
+                min="0"
+                max="99"
+              />
             </div>
 
             <!-- Remarks -->
             <div class="form-group full-width">
-              <label for="remarks"><i class="fas fa-comment"></i> Remarks</label>
-              <textarea id="remarks" placeholder="Enter any remarks or additional notes" rows="3"></textarea>
+              <label for="remarks"
+                ><i class="fas fa-comment"></i> Remarks</label
+              >
+              <textarea
+                id="remarks"
+                placeholder="Enter any remarks or additional notes"
+                rows="3"
+              ></textarea>
             </div>
           </div>
 
           <div class="modal-actions">
-            <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
-            <button type="submit" id="createFirstReceiveBtn" class="btn btn-primary">Save Receive</button>
+            <button type="button" id="cancelBtn" class="btn btn-secondary">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="createFirstReceiveBtn"
+              class="btn btn-primary"
+            >
+              Save Receive
+            </button>
           </div>
         </form>
       </div>
     </div>
 
     <!-- Notification -->
-    <div id="notification" class="notification" style="display:none;"></div>
+    <div id="notification" class="notification" style="display: none"></div>
 
     <script src="app.js"></script>
   </body>

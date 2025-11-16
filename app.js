@@ -15,6 +15,11 @@ const importFile = document.getElementById("importJsonFile");
 const searchInput = document.getElementById("searchInput");
 const createFirstReceive = document.getElementById("createFirstReceive");
 
+// Date Range Filter Elements
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const clearDateFilter = document.getElementById("clearDateFilter");
+
 // Pagination Elements
 const paginationContainer = document.getElementById("paginationContainer");
 const paginationInfo = document.getElementById("paginationInfo");
@@ -60,6 +65,18 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+function getNextConsecutiveNo() {
+  if (receives.length === 0) return 1;
+  
+  // Find the highest consecutive number
+  const maxConsecutiveNo = Math.max(...receives.map(r => {
+    const num = parseInt(r.consecutiveNo);
+    return isNaN(num) ? 0 : num;
+  }));
+  
+  return maxConsecutiveNo + 1;
+}
+
 function formatDate(dateString) {
   if (!dateString) return "";
   try {
@@ -94,31 +111,60 @@ function updateStats() {
   ).length;
 }
 
-// Search Functionality
-function filterReceives(searchTerm) {
-  if (!searchTerm) {
+// Enhanced Search and Date Range Functionality
+function filterReceives(searchTerm, dateFrom = null, dateTo = null) {
+  if (!searchTerm && !dateFrom && !dateTo) {
     filteredReceives = [];
   } else {
     filteredReceives = receives.filter((receive) => {
-      const haystack = [
-        receive.consecutiveNo,
-        receive.slNo,
-        receive.subject,
-        receive.shortSubject,
-        receive.toWhomAddressed,
-        receive.action,
-        receive.fileNo,
-        receive.collectionNoTitle,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(searchTerm.toLowerCase());
+      // Text search - on consecutiveNo, shortSubject and toWhomAddressed
+      let textMatch = true;
+      if (searchTerm) {
+        const searchFields = [
+          receive.consecutiveNo,  // Added consecutiveNo to search
+          receive.shortSubject,
+          receive.toWhomAddressed
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        
+        textMatch = searchFields.includes(searchTerm.toLowerCase());
+      }
+
+      // Date range filter
+      let dateMatch = true;
+      if (dateFrom || dateTo) {
+        const receiveDate = new Date(receive.date);
+        const fromDate = dateFrom ? new Date(dateFrom) : null;
+        const toDate = dateTo ? new Date(dateTo) : null;
+
+        if (fromDate && toDate) {
+          dateMatch = receiveDate >= fromDate && receiveDate <= toDate;
+        } else if (fromDate) {
+          dateMatch = receiveDate >= fromDate;
+        } else if (toDate) {
+          // Set toDate to end of day for inclusive range
+          toDate.setHours(23, 59, 59, 999);
+          dateMatch = receiveDate <= toDate;
+        }
+      }
+
+      return textMatch && dateMatch;
     });
   }
   currentPage = 1;
   renderTable();
   updatePagination();
+}
+
+// Date Range Filter Function
+function filterByDateRange() {
+  const dateFromValue = dateFrom.value;
+  const dateToValue = dateTo.value;
+  const searchTerm = searchInput.value.trim();
+  
+  filterReceives(searchTerm, dateFromValue, dateToValue);
 }
 
 // Pagination Functions
@@ -156,13 +202,13 @@ function updatePagination() {
 
   // Update info text
   if (recordsPerPage === 0) {
-    paginationInfo.textContent = `Showing all ${totalRecords} records`;
+    paginationInfo.textContent = `Showing all ${totalRecords} records${filteredReceives.length > 0 ? ' (filtered)' : ''}`;
   } else if (totalRecords === 0) {
-    paginationInfo.textContent = `Showing 0 records`;
+    paginationInfo.textContent = `Showing 0 records${filteredReceives.length > 0 ? ' (filtered)' : ''}`;
   } else {
     const startRecord = (currentPage - 1) * recordsPerPage + 1;
     const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
-    paginationInfo.textContent = `Showing ${startRecord}-${endRecord} of ${totalRecords} records`;
+    paginationInfo.textContent = `Showing ${startRecord}-${endRecord} of ${totalRecords} records${filteredReceives.length > 0 ? ' (filtered)' : ''}`;
   }
 
   firstPageBtn.disabled = currentPage === 1;
@@ -383,10 +429,16 @@ async function loadReceivesFromJSON() {
 function openModal() {
   receiveModal.style.display = "block";
   receiveModal.setAttribute("aria-hidden", "false");
-  document.getElementById("date").value = new Date()
-    .toISOString()
-    .split("T")[0];
-  document.getElementById("consecutiveNo").focus();
+  
+  // Auto-populate consecutive number and make it read-only
+  const consecutiveNoInput = document.getElementById("consecutiveNo");
+  consecutiveNoInput.value = getNextConsecutiveNo();
+  consecutiveNoInput.readOnly = true;
+  consecutiveNoInput.style.backgroundColor = "#f8f9fa";
+  consecutiveNoInput.style.cursor = "not-allowed";
+  
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("toWhomAddressed").focus(); // Focus on next field instead
   document.body.style.overflow = "hidden";
 }
 
@@ -394,6 +446,13 @@ function closeModalFunc() {
   receiveModal.style.display = "none";
   receiveModal.setAttribute("aria-hidden", "true");
   receiveForm.reset();
+  
+  // Reset consecutive number field properties
+  const consecutiveNoInput = document.getElementById("consecutiveNo");
+  consecutiveNoInput.readOnly = false;
+  consecutiveNoInput.style.backgroundColor = "";
+  consecutiveNoInput.style.cursor = "";
+  
   document.body.style.overflow = "auto";
 }
 
@@ -401,22 +460,15 @@ function closeModalFunc() {
 function addReceive(event) {
   event.preventDefault();
 
+  // Get consecutiveNo from the auto-populated field
   const consecutiveNo = document.getElementById("consecutiveNo").value.trim();
   const date = document.getElementById("date").value;
-  const toWhomAddressed = document
-    .getElementById("toWhomAddressed")
-    .value.trim();
+  const toWhomAddressed = document.getElementById("toWhomAddressed").value.trim();
   const shortSubject = document.getElementById("shortSubject").value.trim();
   const fileNo = document.getElementById("fileNo").value.trim();
-  const serialNoOfLetter = document
-    .getElementById("serialNoOfLetter")
-    .value.trim();
-  const collectionNoTitle = document
-    .getElementById("collectionNoTitle")
-    .value.trim();
-  const fileNoInCollection = document
-    .getElementById("fileNoInCollection")
-    .value.trim();
+  const serialNoOfLetter = document.getElementById("serialNoOfLetter").value.trim();
+  const collectionNoTitle = document.getElementById("collectionNoTitle").value.trim();
+  const fileNoInCollection = document.getElementById("fileNoInCollection").value.trim();
   const replyNo = document.getElementById("replyNo").value.trim();
   const replyDate = document.getElementById("replyDate").value;
   const reminderNo = document.getElementById("reminderNo").value.trim();
@@ -425,9 +477,10 @@ function addReceive(event) {
   const stampP = document.getElementById("stampP").value;
   const remarks = document.getElementById("remarks").value.trim();
 
-  if (!consecutiveNo || !date || !toWhomAddressed || !shortSubject) {
+  // Update validation to remove consecutiveNo check
+  if (!date || !toWhomAddressed || !shortSubject) {
     showNotification(
-      "Please fill required fields (Consecutive No, Date, To Whom Addressed, Short Subject).",
+      "Please fill required fields (Date, To Whom Addressed, Short Subject).",
       "error"
     );
     return;
@@ -773,8 +826,25 @@ recordsPerPageSelect.addEventListener("change", (e) => {
   updatePagination();
 });
 
+// Updated search input event listener
 searchInput.addEventListener("input", (e) => {
-  filterReceives(e.target.value.trim());
+  const searchTerm = e.target.value.trim();
+  const dateFromValue = dateFrom.value;
+  const dateToValue = dateTo.value;
+  
+  filterReceives(searchTerm, dateFromValue, dateToValue);
+});
+
+// Date range filter event listeners
+dateFrom.addEventListener('change', filterByDateRange);
+dateTo.addEventListener('change', filterByDateRange);
+
+// Clear date filter button
+clearDateFilter.addEventListener('click', () => {
+  dateFrom.value = '';
+  dateTo.value = '';
+  const searchTerm = searchInput.value.trim();
+  filterReceives(searchTerm);
 });
 
 // Initialize
