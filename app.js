@@ -111,6 +111,37 @@ function updateStats() {
   ).length;
 }
 
+// Helper function to highlight missing required fields
+function highlightMissingFields(missingFields) {
+  // Remove any existing highlights first
+  const allInputs = document.querySelectorAll('#receiveForm input, #receiveForm textarea');
+  allInputs.forEach(input => {
+    input.style.borderColor = '';
+    input.style.boxShadow = '';
+  });
+  
+  // Highlight missing fields
+  missingFields.forEach(field => {
+    let inputId = '';
+    switch(field) {
+      case 'Consecutive No':
+        inputId = 'consecutiveNo';
+        break;
+    }
+    
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.style.borderColor = '#e74c3c';
+      input.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.1)';
+      
+      // Focus on the first missing field
+      if (missingFields[0] === field) {
+        input.focus();
+      }
+    }
+  });
+}
+
 // Enhanced Search and Date Range Functionality
 function filterReceives(searchTerm, dateFrom = null, dateTo = null) {
   if (!searchTerm && !dateFrom && !dateTo) {
@@ -437,9 +468,16 @@ function openModal() {
   consecutiveNoInput.style.backgroundColor = "#f8f9fa";
   consecutiveNoInput.style.cursor = "not-allowed";
   
-  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  // REMOVED: Auto-fill date with today's date - now it will be empty by default
+  // document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  
   document.getElementById("toWhomAddressed").focus(); // Focus on next field instead
   document.body.style.overflow = "hidden";
+  
+  // Enhance date inputs to be fully clickable
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    input.classList.add('date-input');
+  });
 }
 
 function closeModalFunc() {
@@ -456,7 +494,7 @@ function closeModalFunc() {
   document.body.style.overflow = "auto";
 }
 
-// Add new receive
+// Add new receive - UPDATED: Only Consecutive No. is mandatory
 function addReceive(event) {
   event.preventDefault();
 
@@ -477,21 +515,56 @@ function addReceive(event) {
   const stampP = document.getElementById("stampP").value;
   const remarks = document.getElementById("remarks").value.trim();
 
-  // Update validation to remove consecutiveNo check
-  if (!date || !toWhomAddressed || !shortSubject) {
+  // Check if this is an empty record (only consecutiveNo has value)
+  const isEmptyRecord = consecutiveNo && 
+    (!date || date === '') && 
+    (!toWhomAddressed || toWhomAddressed === '') && 
+    (!shortSubject || shortSubject === '') && 
+    (!fileNo || fileNo === '') && 
+    (!serialNoOfLetter || serialNoOfLetter === '') && 
+    (!collectionNoTitle || collectionNoTitle === '') && 
+    (!fileNoInCollection || fileNoInCollection === '') && 
+    (!replyNo || replyNo === '') && 
+    (!replyDate || replyDate === '') && 
+    (!reminderNo || reminderNo === '') && 
+    (!reminderDate || reminderDate === '') && 
+    (!stampRs || stampRs === '') && 
+    (!stampP || stampP === '') && 
+    (!remarks || remarks === '');
+
+  // UPDATED: Only check for Consecutive No. as mandatory field
+  if (!consecutiveNo) {
     showNotification(
-      "Please fill required fields (Date, To Whom Addressed, Short Subject).",
+      "Please fill the Consecutive No. field.",
       "error"
     );
+    
+    // Add visual feedback to missing field
+    highlightMissingFields(['Consecutive No']);
     return;
+  }
+
+  if (isEmptyRecord) {
+    // Show confirmation for empty records
+    const userConfirmed = confirm(
+      "⚠️ You are about to create an empty record with only Consecutive No.\n\n" +
+      "Consecutive No.: " + consecutiveNo + "\n" +
+      "All other fields will be empty.\n\n" +
+      "Are you sure you want to save this empty record?"
+    );
+    
+    if (!userConfirmed) {
+      showNotification("Empty record creation cancelled", "info");
+      return; // Don't save if user cancels
+    }
   }
 
   const newReceive = {
     id: generateId(),
     consecutiveNo,
-    date,
-    toWhomAddressed,
-    shortSubject,
+    date: date || "", // Ensure empty string if no date
+    toWhomAddressed: toWhomAddressed || "", // Ensure empty string if no value
+    shortSubject: shortSubject || "", // Ensure empty string if no value
     fileNo,
     serialNoOfLetter,
     collectionNoTitle,
@@ -505,7 +578,7 @@ function addReceive(event) {
     remarks,
     // keep legacy friendly fields
     slNo: consecutiveNo,
-    subject: shortSubject,
+    subject: shortSubject || "", // Ensure empty string if no value
     action: "pending",
   };
 
@@ -527,7 +600,13 @@ function addReceive(event) {
   updatePagination();
 
   closeModalFunc();
-  showNotification("Receive added successfully!", "success");
+  
+  // Show appropriate success message
+  if (isEmptyRecord) {
+    showNotification("Empty record saved successfully! Consecutive No: " + consecutiveNo, "success");
+  } else {
+    showNotification("Receive added successfully!", "success");
+  }
 }
 
 // Export CSV
@@ -853,4 +932,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ensure stateful defaults
   recordsPerPage = parseInt(recordsPerPageSelect.value, 10) || 20;
   updatePagination();
+  
+  // Enhance date inputs to be fully clickable
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    input.classList.add('date-input');
+  });
 });
