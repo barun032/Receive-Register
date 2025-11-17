@@ -1,4 +1,4 @@
-/* app.js - Receive Copy System (Full) */
+/* app.js - Receive Copy System (Full, with edit-on-row-click) */
 
 // DOM Elements
 const receiveForm = document.getElementById("receiveForm");
@@ -45,11 +45,15 @@ const successReceives = document.getElementById("successReceives");
 let receives = [];
 let filteredReceives = [];
 let currentPage = 1;
-let recordsPerPage = parseInt(recordsPerPageSelect.value, 10) || 20;
+let recordsPerPage = parseInt(recordsPerPageSelect?.value, 10) || 20;
 let totalPages = 1;
+
+// NEW: editing state (null => creating new; otherwise contains id of record being edited)
+let editingId = null;
 
 // Helpers
 function showNotification(message, type = "info") {
+  if (!notification) return;
   notification.innerHTML = `${
     type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️"
   } ${message}`;
@@ -67,13 +71,14 @@ function generateId() {
 
 function getNextConsecutiveNo() {
   if (receives.length === 0) return 1;
-  
-  // Find the highest consecutive number
-  const maxConsecutiveNo = Math.max(...receives.map(r => {
-    const num = parseInt(r.consecutiveNo);
-    return isNaN(num) ? 0 : num;
-  }));
-  
+
+  const maxConsecutiveNo = Math.max(
+    ...receives.map((r) => {
+      const num = parseInt(r.consecutiveNo);
+      return isNaN(num) ? 0 : num;
+    })
+  );
+
   return maxConsecutiveNo + 1;
 }
 
@@ -98,10 +103,15 @@ function formatDateForPrint(dateString) {
 }
 
 function saveToLocalStorage() {
-  localStorage.setItem("receives", JSON.stringify(receives));
+  try {
+    localStorage.setItem("receives", JSON.stringify(receives));
+  } catch (e) {
+    console.error("Failed to save to localStorage", e);
+  }
 }
 
 function updateStats() {
+  if (!totalReceives) return;
   totalReceives.textContent = receives.length;
   pendingReceives.textContent = receives.filter(
     (r) => (r.action || "").toLowerCase() === "pending"
@@ -111,71 +121,56 @@ function updateStats() {
   ).length;
 }
 
-// Helper function to highlight missing required fields
 function highlightMissingFields(missingFields) {
-  // Remove any existing highlights first
-  const allInputs = document.querySelectorAll('#receiveForm input, #receiveForm textarea');
-  allInputs.forEach(input => {
-    input.style.borderColor = '';
-    input.style.boxShadow = '';
+  const allInputs = document.querySelectorAll("#receiveForm input, #receiveForm textarea");
+  allInputs.forEach((input) => {
+    input.style.borderColor = "";
+    input.style.boxShadow = "";
   });
-  
-  // Highlight missing fields
-  missingFields.forEach(field => {
-    let inputId = '';
-    switch(field) {
-      case 'Consecutive No':
-        inputId = 'consecutiveNo';
+
+  missingFields.forEach((field) => {
+    let inputId = "";
+    switch (field) {
+      case "Consecutive No":
+        inputId = "consecutiveNo";
         break;
     }
-    
     const input = document.getElementById(inputId);
     if (input) {
-      input.style.borderColor = '#e74c3c';
-      input.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.1)';
-      
-      // Focus on the first missing field
-      if (missingFields[0] === field) {
-        input.focus();
-      }
+      input.style.borderColor = "#e74c3c";
+      input.style.boxShadow = "0 0 0 3px rgba(231, 76, 60, 0.1)";
+      if (missingFields[0] === field) input.focus();
     }
   });
 }
 
-// Enhanced Search and Date Range Functionality
-function filterReceives(searchTerm, dateFrom = null, dateTo = null) {
-  if (!searchTerm && !dateFrom && !dateTo) {
+// Filtering and Date Range
+function filterReceives(searchTerm, dateFromVal = null, dateToVal = null) {
+  if (!searchTerm && !dateFromVal && !dateToVal) {
     filteredReceives = [];
   } else {
     filteredReceives = receives.filter((receive) => {
-      // Text search - on consecutiveNo, shortSubject and toWhomAddressed
+      // text search on consecutiveNo, shortSubject, toWhomAddressed
       let textMatch = true;
       if (searchTerm) {
-        const searchFields = [
-          receive.consecutiveNo,  // Added consecutiveNo to search
-          receive.shortSubject,
-          receive.toWhomAddressed
-        ]
+        const searchFields = [receive.consecutiveNo, receive.shortSubject, receive.toWhomAddressed]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
-        
         textMatch = searchFields.includes(searchTerm.toLowerCase());
       }
 
-      // Date range filter
+      // date range
       let dateMatch = true;
-      if (dateFrom || dateTo) {
-        const receiveDate = new Date(receive.date);
-        const fromDate = dateFrom ? new Date(dateFrom) : null;
-        const toDate = dateTo ? new Date(dateTo) : null;
-
+      if (dateFromVal || dateToVal) {
+        const receiveDate = new Date(receive.date || "");
+        const fromDate = dateFromVal ? new Date(dateFromVal) : null;
+        const toDate = dateToVal ? new Date(dateToVal) : null;
         if (fromDate && toDate) {
           dateMatch = receiveDate >= fromDate && receiveDate <= toDate;
         } else if (fromDate) {
           dateMatch = receiveDate >= fromDate;
         } else if (toDate) {
-          // Set toDate to end of day for inclusive range
           toDate.setHours(23, 59, 59, 999);
           dateMatch = receiveDate <= toDate;
         }
@@ -189,40 +184,28 @@ function filterReceives(searchTerm, dateFrom = null, dateTo = null) {
   updatePagination();
 }
 
-// Date Range Filter Function
 function filterByDateRange() {
-  const dateFromValue = dateFrom.value;
-  const dateToValue = dateTo.value;
-  const searchTerm = searchInput.value.trim();
-  
+  const dateFromValue = dateFrom?.value || "";
+  const dateToValue = dateTo?.value || "";
+  const searchTerm = searchInput?.value.trim() || "";
   filterReceives(searchTerm, dateFromValue, dateToValue);
 }
 
-// Pagination Functions
+// Pagination
 function getCurrentPageData() {
-  const dataToRender =
-    filteredReceives.length > 0 ? filteredReceives : receives;
-
-  if (recordsPerPage === 0) {
-    return dataToRender; // show all
-  }
-
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
+  if (recordsPerPage === 0) return dataToRender;
   const startIndex = (currentPage - 1) * recordsPerPage;
   const endIndex = startIndex + recordsPerPage;
   return dataToRender.slice(startIndex, endIndex);
 }
 
 function updatePagination() {
-  const dataToRender =
-    filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
   const totalRecords = dataToRender.length;
 
-  totalPages =
-    recordsPerPage === 0
-      ? 1
-      : Math.max(1, Math.ceil(totalRecords / recordsPerPage));
+  totalPages = recordsPerPage === 0 ? 1 : Math.max(1, Math.ceil(totalRecords / recordsPerPage));
 
-  // Show/hide pagination
   if (totalRecords > (recordsPerPage === 0 ? 0 : recordsPerPage)) {
     paginationContainer.classList.add("show");
     paginationContainer.style.display = "block";
@@ -231,7 +214,6 @@ function updatePagination() {
     paginationContainer.style.display = "none";
   }
 
-  // Update info text
   if (recordsPerPage === 0) {
     paginationInfo.textContent = `Showing all ${totalRecords} records${filteredReceives.length > 0 ? ' (filtered)' : ''}`;
   } else if (totalRecords === 0) {
@@ -304,17 +286,13 @@ function goToPage(page) {
   currentPage = page;
   renderTable();
   updatePagination();
-  // Scroll table into view
-  document
-    .getElementById("receiveTable")
-    .scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("receiveTable").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// Render - updated to include full form fields
+// Render table (now rows are clickable for edit)
 function renderTable() {
   const currentPageData = getCurrentPageData();
-  const dataToRender =
-    filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
 
   if (!dataToRender || dataToRender.length === 0) {
     emptyState.style.display = "block";
@@ -352,7 +330,7 @@ function renderTable() {
       const remarks = r.remarks || "";
 
       return `
-        <tr>
+        <tr data-id="${r.id}" class="clickable-row" title="Click to edit">
           <td>${escapeHtml(consecutiveNo)}</td>
           <td>${escapeHtml(date)}</td>
           <td style="text-align:left;">${escapeHtml(toWhom)}</td>
@@ -366,9 +344,7 @@ function renderTable() {
             ${replyNo ? `<div>${escapeHtml(replyNo)}</div>` : ""}
             ${
               replyDate
-                ? `<div style="font-size:0.9em;color:#555">${escapeHtml(
-                    replyDate
-                  )}</div>`
+                ? `<div style="font-size:0.9em;color:#555">${escapeHtml(replyDate)}</div>`
                 : ""
             }
           </td>
@@ -384,9 +360,19 @@ function renderTable() {
       `;
     })
     .join("");
+
+  // Attach click handlers for edit; ignore clicks on interactive elements
+  tableBody.querySelectorAll("tr[data-id]").forEach((tr) => {
+    tr.addEventListener("click", (e) => {
+      const ignoreTags = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA", "LABEL"];
+      if (ignoreTags.includes(e.target.tagName)) return;
+      const id = tr.getAttribute("data-id");
+      if (id) openEditModal(id);
+    });
+  });
 }
 
-// Basic HTML escape
+// HTML escape
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str)
@@ -397,15 +383,13 @@ function escapeHtml(str) {
     .replaceAll("'", "&#39;");
 }
 
-// Load receives.json (on first load) then fallback to localStorage
+// Load receives.json (fallback to localStorage)
 async function loadReceivesFromJSON() {
   try {
     const response = await fetch("receives.json");
     if (!response.ok) throw new Error("receives.json not found");
     const data = await response.json();
-    if (!Array.isArray(data))
-      throw new Error("Invalid JSON format: expected array");
-    // Map to expected shape (allow both old small records and full-form records)
+    if (!Array.isArray(data)) throw new Error("Invalid JSON format: expected array");
     receives = data.map((item) => ({
       id: item.id || generateId(),
       slNo: item.slNo || item.consecutiveNo || "",
@@ -427,7 +411,6 @@ async function loadReceivesFromJSON() {
       stampP: item.stampP || "",
       remarks: item.remarks || "",
     }));
-    // if there's localStorage data, prefer localStorage to preserve user edits
     const fromLS = JSON.parse(localStorage.getItem("receives") || "null");
     if (Array.isArray(fromLS) && fromLS.length) {
       receives = fromLS;
@@ -456,27 +439,26 @@ async function loadReceivesFromJSON() {
   }
 }
 
-// Modal Functions
+// Modal functions
 function openModal() {
+  editingId = null; // creating new
   receiveModal.style.display = "block";
   receiveModal.setAttribute("aria-hidden", "false");
-  
-  // Auto-populate consecutive number and make it read-only
+
   const consecutiveNoInput = document.getElementById("consecutiveNo");
   consecutiveNoInput.value = getNextConsecutiveNo();
   consecutiveNoInput.readOnly = true;
   consecutiveNoInput.style.backgroundColor = "#f8f9fa";
   consecutiveNoInput.style.cursor = "not-allowed";
-  
-  // REMOVED: Auto-fill date with today's date - now it will be empty by default
-  // document.getElementById("date").value = new Date().toISOString().split("T")[0];
-  
-  document.getElementById("toWhomAddressed").focus(); // Focus on next field instead
+
+  // set submit button text
+  const submitBtn = receiveForm.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = "Save Receive";
+
+  document.getElementById("toWhomAddressed").focus();
   document.body.style.overflow = "hidden";
-  
-  // Enhance date inputs to be fully clickable
-  document.querySelectorAll('input[type="date"]').forEach(input => {
-    input.classList.add('date-input');
+  document.querySelectorAll('input[type="date"]').forEach((input) => {
+    input.classList.add("date-input");
   });
 }
 
@@ -484,21 +466,63 @@ function closeModalFunc() {
   receiveModal.style.display = "none";
   receiveModal.setAttribute("aria-hidden", "true");
   receiveForm.reset();
-  
-  // Reset consecutive number field properties
+
   const consecutiveNoInput = document.getElementById("consecutiveNo");
   consecutiveNoInput.readOnly = false;
   consecutiveNoInput.style.backgroundColor = "";
   consecutiveNoInput.style.cursor = "";
-  
+
+  editingId = null;
   document.body.style.overflow = "auto";
 }
 
-// Add new receive - UPDATED: Only Consecutive No. is mandatory
+// Open edit modal populated with row data
+function openEditModal(id) {
+  const record = receives.find((r) => r.id === id);
+  if (!record) {
+    showNotification("Record not found for editing", "error");
+    return;
+  }
+
+  editingId = id;
+  receiveModal.style.display = "block";
+  receiveModal.setAttribute("aria-hidden", "false");
+
+  // Populate form fields
+  document.getElementById("consecutiveNo").value = record.consecutiveNo || "";
+  document.getElementById("date").value = record.date || "";
+  document.getElementById("toWhomAddressed").value = record.toWhomAddressed || "";
+  document.getElementById("shortSubject").value = record.shortSubject || "";
+  document.getElementById("fileNo").value = record.fileNo || "";
+  document.getElementById("serialNoOfLetter").value = record.serialNoOfLetter || "";
+  document.getElementById("collectionNoTitle").value = record.collectionNoTitle || "";
+  document.getElementById("fileNoInCollection").value = record.fileNoInCollection || "";
+  document.getElementById("replyNo").value = record.replyNo || "";
+  document.getElementById("replyDate").value = record.replyDate || "";
+  document.getElementById("reminderNo").value = record.reminderNo || "";
+  document.getElementById("reminderDate").value = record.reminderDate || "";
+  document.getElementById("stampRs").value = record.stampRs || "";
+  document.getElementById("stampP").value = record.stampP || "";
+  document.getElementById("remarks").value = record.remarks || "";
+
+  // Lock consecutive no
+  const consecutiveNoInput = document.getElementById("consecutiveNo");
+  consecutiveNoInput.readOnly = true;
+  consecutiveNoInput.style.backgroundColor = "#f8f9fa";
+  consecutiveNoInput.style.cursor = "not-allowed";
+
+  // Update submit button text
+  const submitBtn = receiveForm.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = "Update Record";
+
+  document.getElementById("toWhomAddressed").focus();
+  document.body.style.overflow = "hidden";
+}
+
+// Add or update receive
 function addReceive(event) {
   event.preventDefault();
 
-  // Get consecutiveNo from the auto-populated field
   const consecutiveNo = document.getElementById("consecutiveNo").value.trim();
   const date = document.getElementById("date").value;
   const toWhomAddressed = document.getElementById("toWhomAddressed").value.trim();
@@ -515,56 +539,89 @@ function addReceive(event) {
   const stampP = document.getElementById("stampP").value;
   const remarks = document.getElementById("remarks").value.trim();
 
-  // Check if this is an empty record (only consecutiveNo has value)
-  const isEmptyRecord = consecutiveNo && 
-    (!date || date === '') && 
-    (!toWhomAddressed || toWhomAddressed === '') && 
-    (!shortSubject || shortSubject === '') && 
-    (!fileNo || fileNo === '') && 
-    (!serialNoOfLetter || serialNoOfLetter === '') && 
-    (!collectionNoTitle || collectionNoTitle === '') && 
-    (!fileNoInCollection || fileNoInCollection === '') && 
-    (!replyNo || replyNo === '') && 
-    (!replyDate || replyDate === '') && 
-    (!reminderNo || reminderNo === '') && 
-    (!reminderDate || reminderDate === '') && 
-    (!stampRs || stampRs === '') && 
-    (!stampP || stampP === '') && 
-    (!remarks || remarks === '');
-
-  // UPDATED: Only check for Consecutive No. as mandatory field
   if (!consecutiveNo) {
-    showNotification(
-      "Please fill the Consecutive No. field.",
-      "error"
-    );
-    
-    // Add visual feedback to missing field
-    highlightMissingFields(['Consecutive No']);
+    showNotification("Please fill the Consecutive No. field.", "error");
+    highlightMissingFields(["Consecutive No"]);
     return;
   }
 
+  // If we are editing an existing record
+  if (editingId) {
+    const idx = receives.findIndex((r) => r.id === editingId);
+    if (idx === -1) {
+      showNotification("Record to update not found", "error");
+      return;
+    }
+
+    receives[idx] = {
+      ...receives[idx],
+      // keep id same; consecutiveNo not changed
+      consecutiveNo,
+      date: date || "",
+      toWhomAddressed: toWhomAddressed || "",
+      shortSubject: shortSubject || "",
+      fileNo,
+      serialNoOfLetter,
+      collectionNoTitle,
+      fileNoInCollection,
+      replyNo,
+      replyDate,
+      reminderNo,
+      reminderDate,
+      stampRs,
+      stampP,
+      remarks,
+      slNo: receives[idx].slNo || consecutiveNo,
+      subject: shortSubject || receives[idx].subject || "",
+    };
+
+    saveToLocalStorage();
+    updateStats();
+    renderTable();
+    updatePagination();
+    closeModalFunc();
+    showNotification("Record updated successfully!", "success");
+    return;
+  }
+
+  // Creating new record
+  const isEmptyRecord =
+    (!date || date === "") &&
+    (!toWhomAddressed || toWhomAddressed === "") &&
+    (!shortSubject || shortSubject === "") &&
+    (!fileNo || fileNo === "") &&
+    (!serialNoOfLetter || serialNoOfLetter === "") &&
+    (!collectionNoTitle || collectionNoTitle === "") &&
+    (!fileNoInCollection || fileNoInCollection === "") &&
+    (!replyNo || replyNo === "") &&
+    (!replyDate || replyDate === "") &&
+    (!reminderNo || reminderNo === "") &&
+    (!reminderDate || reminderDate === "") &&
+    (!stampRs || stampRs === "") &&
+    (!stampP || stampP === "") &&
+    (!remarks || remarks === "");
+
   if (isEmptyRecord) {
-    // Show confirmation for empty records
     const userConfirmed = confirm(
       "⚠️ You are about to create an empty record with only Consecutive No.\n\n" +
-      "Consecutive No.: " + consecutiveNo + "\n" +
-      "All other fields will be empty.\n\n" +
-      "Are you sure you want to save this empty record?"
+        "Consecutive No.: " +
+        consecutiveNo +
+        "\n" +
+        "All other fields will be empty.\n\n" +
+        "Are you sure you want to save this empty record?"
     );
-    
     if (!userConfirmed) {
       showNotification("Empty record creation cancelled", "info");
-      return; // Don't save if user cancels
+      return;
     }
   }
 
   const newReceive = {
     id: generateId(),
     consecutiveNo,
-    date: date || "", // Ensure empty string if no date
-    toWhomAddressed: toWhomAddressed || "", // Ensure empty string if no value
-    shortSubject: shortSubject || "", // Ensure empty string if no value
+    date: date || "",
+    toWhomAddressed: toWhomAddressed || "",
+    shortSubject: shortSubject || "",
     fileNo,
     serialNoOfLetter,
     collectionNoTitle,
@@ -576,9 +633,8 @@ function addReceive(event) {
     stampRs,
     stampP,
     remarks,
-    // keep legacy friendly fields
     slNo: consecutiveNo,
-    subject: shortSubject || "", // Ensure empty string if no value
+    subject: shortSubject || "",
     action: "pending",
   };
 
@@ -587,8 +643,7 @@ function addReceive(event) {
   updateStats();
 
   // go to last page
-  const dataToRender =
-    filteredReceives.length > 0 ? filteredReceives : receives;
+  const dataToRender = filteredReceives.length > 0 ? filteredReceives : receives;
   if (recordsPerPage > 0) {
     const newTotalPages = Math.ceil(dataToRender.length / recordsPerPage);
     currentPage = newTotalPages;
@@ -598,15 +653,27 @@ function addReceive(event) {
 
   renderTable();
   updatePagination();
-
   closeModalFunc();
-  
-  // Show appropriate success message
-  if (isEmptyRecord) {
-    showNotification("Empty record saved successfully! Consecutive No: " + consecutiveNo, "success");
-  } else {
-    showNotification("Receive added successfully!", "success");
+  showNotification(isEmptyRecord ? "Empty record saved successfully! Consecutive No: " + consecutiveNo : "Receive added successfully!", "success");
+}
+
+// Export JSON
+function exportToJSON() {
+  if (receives.length === 0) {
+    showNotification("No data to export!", "error");
+    return;
   }
+  const dataStr = JSON.stringify(receives, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `receives_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showNotification("Exported JSON file", "success");
 }
 
 // Export CSV
@@ -616,7 +683,6 @@ function exportToCSV() {
     return;
   }
 
-  // Use columns consistent with the multi-column table
   const headers = [
     "Consecutive No",
     "Date",
@@ -653,169 +719,87 @@ function exportToCSV() {
     r.action || "",
   ]);
 
-  const csvContent = [headers, ...rows]
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-    .join("\n");
+  const csvContent =
+    [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "receives.csv";
+  a.download = `receives_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-
-  showNotification("Data exported as CSV!", "success");
+  showNotification("Exported CSV file", "success");
 }
 
-// Export JSON
-function exportToJSON() {
-  if (receives.length === 0) {
-    showNotification("No data to export!", "error");
-    return;
-  }
-
-  const dataStr = JSON.stringify(receives, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "receives.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  showNotification("Data exported as JSON!", "success");
-}
-
-// Print receives - same multi-row header and columns
+// Print only the rows currently visible in the table (what user sees)
 function printReceives() {
-  const dataToPrint = getCurrentPageData();
-  if (!dataToPrint || dataToPrint.length === 0) {
-    showNotification("No data to print!", "error");
+  // Grab current rows from the DOM (exactly what's visible)
+  const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+
+  if (!rows || rows.length === 0) {
+    showNotification("No visible records to print!", "error");
     return;
   }
 
-  const printDate = new Date().toLocaleDateString();
+  // Build table body HTML by extracting each cell's textContent (preserves what user sees)
+  const printRows = rows.map((tr) => {
+    // Collect all visible cells' text (keeps order as in table)
+    const cells = Array.from(tr.querySelectorAll("td")).map((td) => {
+      // Replace multiple line breaks / extra spaces with single space for clean print
+      return td.textContent.replace(/\s+/g, " ").trim();
+    });
 
-  const printRows = dataToPrint
-    .map((r) => {
-      const consecutiveNo = r.consecutiveNo || "";
-      const date = formatDateForPrint(r.date);
-      const toWhom = r.toWhomAddressed || "";
-      const shortSubject = r.shortSubject || "";
+    // Wrap each cell into a <td>
+    return `<tr>${cells.map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`;
+  }).join("");
 
-      const fileNo = r.fileNo || "";
-      const serial = r.serialNoOfLetter || "";
-      const fileAndSerial = [fileNo, serial].filter(Boolean).join(" / ");
-
-      const collection = r.collectionNoTitle || "";
-      const fileInCollection = r.fileNoInCollection || "";
-
-      const replyNo = r.replyNo || "";
-      const replyDate = r.replyDate ? formatDateForPrint(r.replyDate) : "";
-
-      const reminderNo = r.reminderNo || "";
-      const reminderDate = r.reminderDate
-        ? formatDateForPrint(r.reminderDate)
-        : "";
-
-      const stampRs = r.stampRs || "";
-      const stampP = r.stampP || "";
-      const remarks = r.remarks || "";
-
-      return `
-      <tr>
-        <td>${escapeHtml(consecutiveNo)}</td>
-        <td>${escapeHtml(date)}</td>
-        <td style="text-align:left;">${escapeHtml(toWhom)}</td>
-        <td style="text-align:left;">${escapeHtml(shortSubject)}</td>
-
-        <td style="text-align:left;">${escapeHtml(fileAndSerial)}</td>
-        <td style="text-align:left;">${escapeHtml(collection)}</td>
-        <td>${escapeHtml(fileInCollection)}</td>
-
-        <td style="text-align:left;">
-          ${replyNo ? `<div>${escapeHtml(replyNo)}</div>` : ""}
-          ${
-            replyDate
-              ? `<div style="font-size:0.9em;color:#555">${escapeHtml(
-                  replyDate
-                )}</div>`
-              : ""
+  // Minimal print styles to keep table readable
+  const printContent = `
+    <html>
+      <head>
+        <title>Print - Visible Receive Copies</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
+          table { width: 100%; border-collapse: collapse; font-size: 12px; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+          th { background: #f5f5f5; }
+          @media print {
+            button, .no-print { display: none !important; }
           }
-        </td>
+        </style>
+      </head>
+      <body>
+        <h3>Visible Receive Copies - ${new Date().toLocaleString()}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Consecutive No</th>
+              <th>Date</th>
+              <th>To whom addressed</th>
+              <th>Short subject</th>
+              <th>File No & Serial</th>
+              <th>Collection</th>
+              <th>File No in Collection</th>
+              <th>Reply</th>
+              <th>Reminder No</th>
+              <th>Reminder Date</th>
+              <th>Rs</th>
+              <th>P</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${printRows}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
 
-        <td>${escapeHtml(reminderNo)}</td>
-        <td>${escapeHtml(reminderDate)}</td>
-
-        <td>${escapeHtml(stampRs)}</td>
-        <td>${escapeHtml(stampP)}</td>
-
-        <td style="text-align:left;">${escapeHtml(remarks)}</td>
-      </tr>
-    `;
-    })
-    .join("");
-
-  const printContent = `<!doctype html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Receive Copy Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; color: #333; margin: 10px; }
-        .print-header { text-align:center; margin-bottom:10px; }
-        table { width:100%; border-collapse:collapse; font-size:12px; }
-        th, td { border:1px solid #bbb; padding:8px; }
-        th { background:#f2f2f2; font-weight:700; text-align:center; }
-        td { text-align:center; }
-        td:first-child, th:first-child { width:8%; }
-        td:nth-child(2), th:nth-child(2) { width:9%; }
-        td:nth-child(3), th:nth-child(3) { width:18%; text-align:left; }
-        td:nth-child(4), th:nth-child(4) { width:20%; text-align:left; }
-        @page { margin: 1cm; size: auto; }
-      </style>
-    </head>
-    <body>
-      <div class="print-header">
-        <h1>Receive Copy Report</h1>
-        <div>Printed: ${printDate}</div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th rowspan="2">Consecutive No.</th>
-            <th rowspan="2">Date</th>
-            <th rowspan="2">To whom addressed</th>
-            <th rowspan="2">Short subject</th>
-            <th colspan="3">Where the draft is placed</th>
-            <th rowspan="2">No. and date of reply received</th>
-            <th colspan="2">Reminder</th>
-            <th colspan="2">Value of Stamp</th>
-            <th rowspan="2">Remarks</th>
-          </tr>
-          <tr>
-            <th>File No. &amp; Serial No. of letter of file</th>
-            <th>No. &amp; title of the collection</th>
-            <th>No. of file within the collection</th>
-            <th>No.</th>
-            <th>Date</th>
-            <th>Rs.</th>
-            <th>P.</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${printRows}
-        </tbody>
-      </table>
-    </body>
-  </html>`;
-
+  // Print via hidden iframe (keeps main page intact)
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.left = "-9999px";
@@ -823,12 +807,19 @@ function printReceives() {
   iframe.contentDocument.open();
   iframe.contentDocument.write(printContent);
   iframe.contentDocument.close();
+
+  // wait a tick for content to render, then print
   iframe.contentWindow.focus();
   iframe.contentWindow.print();
-  setTimeout(() => document.body.removeChild(iframe), 1000);
 
-  showNotification(`Printing ${dataToPrint.length} visible records!`, "info");
+  // cleanup after a short delay
+  setTimeout(() => {
+    try { document.body.removeChild(iframe); } catch (e) {}
+  }, 1000);
+
+  showNotification(`Printing ${rows.length} visible record(s)!`, "info");
 }
+
 
 // Clear all
 function clearAllData() {
@@ -836,12 +827,7 @@ function clearAllData() {
     showNotification("No data to clear!", "error");
     return;
   }
-  if (
-    !confirm(
-      "Are you sure you want to delete all receive data? This action cannot be undone."
-    )
-  )
-    return;
+  if (!confirm("Are you sure you want to delete all receive data? This action cannot be undone.")) return;
   receives = [];
   filteredReceives = [];
   currentPage = 1;
@@ -852,10 +838,10 @@ function clearAllData() {
   showNotification("All data cleared!", "info");
 }
 
-// Import JSON File
-importBtn.addEventListener("click", () => importFile.click());
+// Import JSON File handlers
+importBtn?.addEventListener("click", () => importFile.click());
 
-importFile.addEventListener("change", () => {
+importFile?.addEventListener("change", () => {
   const file = importFile.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -878,62 +864,49 @@ importFile.addEventListener("change", () => {
 });
 
 // Event listeners
-createReceiveBtn.addEventListener("click", openModal);
+createReceiveBtn?.addEventListener("click", openModal);
 createFirstReceive && createFirstReceive.addEventListener("click", openModal);
-closeModal.addEventListener("click", closeModalFunc);
-cancelBtn.addEventListener("click", closeModalFunc);
-receiveForm.addEventListener("submit", addReceive);
+closeModal?.addEventListener("click", closeModalFunc);
+cancelBtn?.addEventListener("click", closeModalFunc);
+receiveForm?.addEventListener("submit", addReceive);
 
-exportCsvBtn.addEventListener("click", exportToCSV);
-exportJsonBtn.addEventListener("click", exportToJSON);
-printBtn.addEventListener("click", printReceives);
-clearAllBtn.addEventListener("click", clearAllData);
+exportCsvBtn?.addEventListener("click", exportToCSV);
+exportJsonBtn?.addEventListener("click", exportToJSON);
+printBtn?.addEventListener("click", printReceives);
+clearAllBtn?.addEventListener("click", clearAllData);
 
-firstPageBtn.addEventListener("click", () => goToPage(1));
-prevPageBtn.addEventListener("click", () =>
-  goToPage(Math.max(1, currentPage - 1))
-);
-nextPageBtn.addEventListener("click", () =>
-  goToPage(Math.min(totalPages, currentPage + 1))
-);
-lastPageBtn.addEventListener("click", () => goToPage(totalPages));
+firstPageBtn?.addEventListener("click", () => goToPage(1));
+prevPageBtn?.addEventListener("click", () => goToPage(Math.max(1, currentPage - 1)));
+nextPageBtn?.addEventListener("click", () => goToPage(Math.min(totalPages, currentPage + 1)));
+lastPageBtn?.addEventListener("click", () => goToPage(totalPages));
 
-recordsPerPageSelect.addEventListener("change", (e) => {
+recordsPerPageSelect?.addEventListener("change", (e) => {
   recordsPerPage = parseInt(e.target.value, 10);
   currentPage = 1;
   renderTable();
   updatePagination();
 });
 
-// Updated search input event listener
-searchInput.addEventListener("input", (e) => {
+searchInput?.addEventListener("input", (e) => {
   const searchTerm = e.target.value.trim();
-  const dateFromValue = dateFrom.value;
-  const dateToValue = dateTo.value;
-  
+  const dateFromValue = dateFrom?.value;
+  const dateToValue = dateTo?.value;
   filterReceives(searchTerm, dateFromValue, dateToValue);
 });
 
-// Date range filter event listeners
-dateFrom.addEventListener('change', filterByDateRange);
-dateTo.addEventListener('change', filterByDateRange);
-
-// Clear date filter button
-clearDateFilter.addEventListener('click', () => {
-  dateFrom.value = '';
-  dateTo.value = '';
-  const searchTerm = searchInput.value.trim();
+dateFrom?.addEventListener("change", filterByDateRange);
+dateTo?.addEventListener("change", filterByDateRange);
+clearDateFilter?.addEventListener("click", () => {
+  if (dateFrom) dateFrom.value = "";
+  if (dateTo) dateTo.value = "";
+  const searchTerm = searchInput?.value.trim();
   filterReceives(searchTerm);
 });
 
-// Initialize
 document.addEventListener("DOMContentLoaded", () => {
   loadReceivesFromJSON();
-  // ensure stateful defaults
-  recordsPerPage = parseInt(recordsPerPageSelect.value, 10) || 20;
+  recordsPerPage = parseInt(recordsPerPageSelect?.value, 10) || 20;
   updatePagination();
-  
-  // Enhance date inputs to be fully clickable
   document.querySelectorAll('input[type="date"]').forEach(input => {
     input.classList.add('date-input');
   });

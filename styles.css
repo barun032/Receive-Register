@@ -415,6 +415,23 @@ tr:hover td {
   color: #155724;
   border: 1px solid #c3e6cb;
 }
+/* Make table rows clickable */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Subtle hover effect */
+.clickable-row:hover {
+  background-color: #f6f8fb;      /* very light grey/blue */
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.02); /* ultra subtle overlay */
+}
+
+/* Optional: highlight active click (press down) */
+.clickable-row:active {
+  background-color: #edf1f7;
+}
+
 
 /* Empty State */
 .empty-state {
@@ -646,6 +663,32 @@ tr:hover td {
     padding: 15px;
   }
 }
+/* Align modal form buttons to the right, with spacing */
+.form-actions {
+  display: flex;
+  justify-content: flex-end; /* push buttons to the right */
+  gap: 12px;                 /* spacing between buttons */
+  padding: 16px 30px;        /* match modal padding (adjust if needed) */
+  border-top: 1px solid var(--border); /* subtle separator */
+  background: white;         /* keep footer consistent */
+}
+
+/* Make sure primary button is visually prominent and rightmost */
+.form-actions .btn-primary {
+  min-width: 120px;
+}
+
+/* Small-screen tweak */
+@media (max-width: 480px) {
+  .form-actions {
+    padding: 12px;
+    gap: 8px;
+  }
+  .form-actions .btn-primary {
+    min-width: 100px;
+  }
+}
+
 
 /* Footer */
 .main-footer {
