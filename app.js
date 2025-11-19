@@ -734,91 +734,173 @@ function exportToCSV() {
   showNotification("Exported CSV file", "success");
 }
 
-// Print only the rows currently visible in the table (what user sees)
+// improved printReceives() — drop-in replacement
 function printReceives() {
-  // Grab current rows from the DOM (exactly what's visible)
+  // find visible rows in the table body
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
 
   if (!rows || rows.length === 0) {
+    // assumes showNotification() exists in your app (keeps behavior consistent)
     showNotification("No visible records to print!", "error");
     return;
   }
 
-  // Build table body HTML by extracting each cell's textContent (preserves what user sees)
-  const printRows = rows.map((tr) => {
-    // Collect all visible cells' text (keeps order as in table)
-    const cells = Array.from(tr.querySelectorAll("td")).map((td) => {
-      // Replace multiple line breaks / extra spaces with single space for clean print
-      return td.textContent.replace(/\s+/g, " ").trim();
-    });
+  // helper to escape HTML text content so it prints safely
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 
-    // Wrap each cell into a <td>
-    return `<tr>${cells.map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`;
-  }).join("");
+  // preserve the actual table header if present (keeps multi-row headers intact)
+  const originalThead = document.querySelector("#receiveTable thead");
+  const theadHtml = originalThead ? originalThead.outerHTML : `
+    <thead>
+      <tr>
+        <th>Consecutive No</th><th>Date</th><th>To whom addressed</th><th>Short subject</th>
+        <th>File No & Serial</th><th>Collection</th><th>File No in Collection</th>
+        <th>Reply</th><th>Reminder No</th><th>Reminder Date</th><th>Rs</th><th>P</th><th>Remarks</th>
+      </tr>
+    </thead>
+  `;
 
-  // Minimal print styles to keep table readable
+  // Build tbody from visible rows — preserve order and text, strip extra whitespace
+  const printRows = rows
+    .map((tr) => {
+      const tds = Array.from(tr.querySelectorAll("td"));
+      const cellsHtml = tds
+        .map(td => escapeHtml(td.textContent.replace(/\s+/g, " ").trim()))
+        .map(text => `<td>${text}</td>`)
+        .join("");
+      return `<tr>${cellsHtml}</tr>`;
+    })
+    .join("");
+
+  // Print CSS: no background colors, header centered
+  const printStyle = `
+    body { font-family: Arial, sans-serif; color: #222; padding: 16px; }
+    h3 { margin-bottom: 8px; font-size: 16px; text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: auto; }
+    th, td { border: 1px solid #000; padding: 6px; vertical-align: top; word-break: break-word; }
+    
+    tr { page-break-inside: avoid; }
+    @media print {
+      button, .no-print { display: none !important; }
+    }
+  `;
+
+  // construct full print HTML — includes link to your styles.css so widths/padding are kept
   const printContent = `
+    <!doctype html>
     <html>
       <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>Print - Visible Receive Copies</title>
+        <link rel="stylesheet" href="styles.css">
+
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
-          table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          th, td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
-          th { background: #f5f5f5; }
+          body { font-family: Arial, sans-serif; color: #222; padding: 16px; }
+          h3 { margin-bottom: 8px; font-size: 16px; text-align: center; }
+
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            table-layout: fixed;   /* forces widths to respect colgroup */
+          }
+
+          th, td { 
+            border: 1px solid #000; 
+            padding: 6px; 
+            vertical-align: top; 
+            box-sizing: border-box; 
+            overflow-wrap: break-word; 
+            word-wrap: break-word; 
+            white-space: normal;
+          }
+
+          thead th { 
+            text-align: center; 
+            font-weight: bold;
+            /* No background color (as requested) */
+          }
+
+          tr { 
+            page-break-inside: avoid; 
+          }
+
           @media print {
             button, .no-print { display: none !important; }
           }
         </style>
+
       </head>
       <body>
-        <h3>Visible Receive Copies - ${new Date().toLocaleString()}</h3>
+        <h3>Visible Receive Copies — ${new Date().toLocaleString()}</h3>
+
         <table>
-          <thead>
-            <tr>
-              <th>Consecutive No</th>
-              <th>Date</th>
-              <th>To whom addressed</th>
-              <th>Short subject</th>
-              <th>File No & Serial</th>
-              <th>Collection</th>
-              <th>File No in Collection</th>
-              <th>Reply</th>
-              <th>Reminder No</th>
-              <th>Reminder Date</th>
-              <th>Rs</th>
-              <th>P</th>
-              <th>Remarks</th>
-            </tr>
-          </thead>
+
+          <colgroup>
+            <col style="width: 60px;">   <!-- Consecutive No -->
+            <col style="width: 70px;">   <!-- Date -->
+            <col style="width: 140px;">  <!-- To whom addressed -->
+            <col style="width: 180px;">  <!-- Short subject -->
+            <col style="width: 100px;">  <!-- File No & Serial -->
+            <col style="width: 80px;">   <!-- Collection -->
+            <col style="width: 120px;">  <!-- File No in Collection -->
+            <col style="width: 70px;">   <!-- Reply -->
+            <col style="width: 70px;">   <!-- Reminder No -->
+            <col style="width: 80px;">   <!-- Reminder Date -->
+            <col style="width: 50px;">   <!-- Rs -->
+            <col style="width: 50px;">   <!-- P -->
+            <col style="width: 160px;">  <!-- Remarks -->
+          </colgroup>
+
+          ${theadHtml}
+
           <tbody>
             ${printRows}
           </tbody>
+
         </table>
       </body>
     </html>
   `;
 
-  // Print via hidden iframe (keeps main page intact)
+
+  // create a hidden iframe, write the print content, call print, then remove iframe
   const iframe = document.createElement("iframe");
   iframe.style.position = "absolute";
   iframe.style.left = "-9999px";
   document.body.appendChild(iframe);
-  iframe.contentDocument.open();
-  iframe.contentDocument.write(printContent);
-  iframe.contentDocument.close();
 
-  // wait a tick for content to render, then print
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open();
+  doc.write(printContent);
+  doc.close();
+
+  // some browsers need a short delay to load external stylesheet — keep it very small
   iframe.contentWindow.focus();
-  iframe.contentWindow.print();
-
-  // cleanup after a short delay
   setTimeout(() => {
-    try { document.body.removeChild(iframe); } catch (e) {}
-  }, 1000);
+    try {
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error("Print failed:", e);
+    }
+    // cleanup
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch (e) {}
+    }, 500);
+  }, 150);
 
   showNotification(`Printing ${rows.length} visible record(s)!`, "info");
 }
+
 
 
 // Clear all
