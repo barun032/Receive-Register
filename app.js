@@ -852,13 +852,13 @@ function printReceives() {
             <col style="width: 180px;">  <!-- Short subject -->
             <col style="width: 100px;">  <!-- File No & Serial -->
             <col style="width: 80px;">   <!-- Collection -->
-            <col style="width: 120px;">  <!-- File No in Collection -->
+            <col style="width: 60px;">  <!-- File No in Collection -->
             <col style="width: 70px;">   <!-- Reply -->
             <col style="width: 70px;">   <!-- Reminder No -->
-            <col style="width: 80px;">   <!-- Reminder Date -->
+            <col style="width: 60px;">   <!-- Reminder Date -->
             <col style="width: 50px;">   <!-- Rs -->
             <col style="width: 50px;">   <!-- P -->
-            <col style="width: 160px;">  <!-- Remarks -->
+           
           </colgroup>
 
           ${theadHtml}
